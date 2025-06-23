@@ -95,6 +95,7 @@ th, td {
   text-align: center;
 }
 
+/* 👇 Esto es lo que pediste: Tabla completamente blanca */
 th {
   background-color: white;
   color: var(--text);
@@ -113,7 +114,6 @@ td img {
   height: 100px;
 }
 
-/* ========== GRUPO DE BOTONES ========== */
 .button-group {
   display: flex;
   justify-content: flex-start;
@@ -137,6 +137,22 @@ td img {
   background-color: var(--primary-dark);
   color: var(--white);
 }
+
+.btn-nuevo {
+  background-color: var(--primary);
+  color: var(--white);
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-weight: bold;
+  transition: var(--transition);
+}
+
+.btn-nuevo:hover {
+  background-color: var(--primary-dark);
+  color: var(--white);
+}
+
 
 /* ========== RESULTADO (SALARIO) ========== */
 .resultado {
@@ -168,63 +184,23 @@ td img {
   background-color: #c27191;
 }
 
-/* ========== RESPONSIVE PARA MÓVIL ========== */
+/* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
   .container {
     padding: 20px;
   }
 
-  table {
-    display: block;
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  th, td {
-    padding: 10px;
-    min-width: 100px;
+  table, th, td {
     font-size: 0.85rem;
-  }
-
-  td img {
-    width: 70px;
-    height: 70px;
   }
 
   .button-group {
     flex-direction: column;
-    align-items: stretch;
     gap: 10px;
-  }
-
-  .m {
-    width: 100%;
-    font-size: 1rem;
-    padding: 12px;
-  }
-
-  .btn-pdf {
-    width: 100%;
-    font-size: 1rem;
-  }
-
-  .resultado {
-    font-size: 1rem;
-    padding: 15px;
-  }
-
-  .btn-nuevo {
-    display: block;
-    text-align: center;
-    margin: 0 auto 15px auto;
   }
 
   .welcome-section h2 {
     font-size: 1.3rem;
   }
-
-  .welcome-section p {
-    font-size: 0.95rem;
-  }
 }
+
