@@ -23,7 +23,7 @@ body {
     justify-content: center;
     align-items: center;
     background-color: #000;
-    background-image: url("/img/fondologin.jpeg"), radial-gradient(circle at center, #ffc997ab, #b89f8a);
+    background-image:  radial-gradient(circle at center, #ffc997ab, #b89f8a);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
