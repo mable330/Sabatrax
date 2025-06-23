@@ -52,11 +52,11 @@
 <form th:action="@{/corte/registroC}" method="post" enctype="multipart/form-data" th:object="${corte}">
 
     <ul>
-     <label>Fecha:</label>
-    <input type="hidden" name="fechaEnvio" th:field="*{fecha}"
-           th:value="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}"/>
-    <div style="padding: 8px; background: #000000FF; border-radius: 4px; display: inline-block;">
-        <span th:text="${#temporals.format(#temporals.createToday(), 'EEEE, d MMMM yyyy')}"></span>
+    <label>Fecha:</label>
+<input type="hidden" name="fechaEnvio" th:field="*{fecha}" th:value="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}"/>
+<div style="padding: 8px; background: #FFC0CB; color: #000000; border-radius: 4px; display: inline-block;">
+    <span th:text="${#temporals.format(#temporals.createToday(), 'EEEE, d MMMM yyyy')}"></span>
+</div>
         <!-- Ejemplo: "viernes, 14 junio 2025" -->
     </div> 
 
