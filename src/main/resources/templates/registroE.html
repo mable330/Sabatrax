@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Registro de Actividad - Empaque</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" th:href="@{/css/registroM.css}">
     <link rel="icon" th:href="@{/img/loguito.jpeg}" type="image/x-icon">
 </head>
@@ -67,45 +68,65 @@
             <input type="text" th:field="*{novedades}" required />
         </li>
 
-        <li>
+     <li>
+            <!-- Entrada oculta de la imagen -->
             <input type="file" name="imagenFile" id="imagen" accept="image/*" hidden>
+
+            <!-- Botones de control de cámara -->
             <input type="button" id="openCamera" value="Abrir Cámara">
-            <video id="video" width="500" height="600" autoplay style="display:none;"></video>
+            <input type="button" id="switchCam" value="Cambiar Cámara" style="display:none;">
+            <video id="video" width="500" height="600" autoplay muted playsinline style="display:none;"></video>
             <input type="button" id="capture" value="Tomar Foto" style="display:none;">
             <canvas id="canvas" width="500" height="500" style="display:none;"></canvas>
             <input type="submit" id="savePhoto" value="Guardar Foto" style="display:none;">
         </li>
-
-        <!-- ✅ Botón para guardar sin usar la cámara -->
-       
     </ul>
 </form>
 
 <script>
     function closeErrorAlert() {
         const errorAlert = document.getElementById('errorAlert');
-        if (errorAlert) {
-            errorAlert.style.display = 'none';
-        }
+        if (errorAlert) errorAlert.style.display = 'none';
     }
 
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const context = canvas.getContext('2d');
     const openCameraBtn = document.getElementById('openCamera');
+    const switchCamBtn = document.getElementById('switchCam');
     const captureBtn = document.getElementById('capture');
     const saveBtn = document.getElementById('savePhoto');
     const imagenInput = document.getElementById('imagen');
 
-    openCameraBtn.addEventListener('click', () => {
-        navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+    let currentFacingMode = "environment";
+    let currentStream = null;
+
+    async function startCamera(facingMode) {
+        if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+        }
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { exact: facingMode } }
+            });
+            currentStream = stream;
             video.srcObject = stream;
             video.style.display = 'block';
             captureBtn.style.display = 'inline';
-            openCameraBtn.style.display = 'none';
-        }).catch((error) => {
-            alert("Error al acceder a la cámara: " + error);
-        });
+            switchCamBtn.style.display = 'inline';
+        } catch (err) {
+            alert("Error al acceder a la cámara: " + err.message);
+        }
+    }
+
+    openCameraBtn.addEventListener('click', () => {
+        startCamera(currentFacingMode);
+        openCameraBtn.style.display = 'none';
+    });
+
+    switchCamBtn.addEventListener('click', () => {
+        currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
+        startCamera(currentFacingMode);
     });
 
     captureBtn.addEventListener('click', () => {
@@ -115,15 +136,22 @@
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
             imagenInput.files = dataTransfer.files;
-            video.srcObject.getTracks().forEach(track => track.stop());
 
+            // Ocultar cámara y mostrar canvas
             video.style.display = 'none';
             captureBtn.style.display = 'none';
+            switchCamBtn.style.display = 'none';
             canvas.style.display = 'block';
             saveBtn.style.display = 'inline';
+
+            // Detener cámara
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
         }, 'image/png');
     });
 </script>
+
 
 </body>
 </html>

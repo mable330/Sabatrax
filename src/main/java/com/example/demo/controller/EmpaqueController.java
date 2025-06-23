@@ -32,6 +32,7 @@ public class EmpaqueController {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    // 🔥 CORREGIDO: Era "PredidoRepository", ahora es "PedidoRepository"
     @Autowired
     private PedidoRepository pedidoRepository;
 
@@ -71,7 +72,7 @@ public class EmpaqueController {
         return "registroE";
     }
 
-    // ✅ Registrar actividad y actualizar pedido
+    // ✅ Registrar actividad y actualizar pedido - CORREGIDO
     @PostMapping("/registroE")
     @Transactional
     public String registrarActividad(
@@ -101,15 +102,28 @@ public class EmpaqueController {
 
             LocalDate fechaActual = LocalDate.now();
 
+            // 🔥 CORRECCIÓN: Buscar solo pedidos ACTIVOS (no completados)
             List<Pedido> pedidosActivos = pedidoRepository.findByMedidasSabanasAndFechaEnvioAfter(medidas, fechaActual);
 
-            if (pedidosActivos.isEmpty()) {
-                model.addAttribute("error", "🚨 No hay pedidos activos para la medida '" + medidas + "'.");
+            // 🔥 NUEVA VALIDACIÓN: Filtrar solo pedidos que NO estén completados
+            List<Pedido> pedidosPendientes = pedidosActivos.stream()
+                    .filter(p -> p.getCantidadEntregada() < p.getJuegos())
+                    .collect(Collectors.toList());
+
+            if (pedidosPendientes.isEmpty()) {
+                // Verificar si hay pedidos pero todos están completados
+                if (!pedidosActivos.isEmpty()) {
+                    model.addAttribute("error",
+                            "🚨 Todos los pedidos para la medida '" + medidas + "' ya están completados.");
+                } else {
+                    model.addAttribute("error", "🚨 No hay pedidos activos para la medida '" + medidas + "'.");
+                }
                 return "registroE";
             }
 
-            int totalJuegosSolicitados = pedidosActivos.stream().mapToInt(Pedido::getJuegos).sum();
-            int totalJuegosEntregados = pedidosActivos.stream().mapToInt(Pedido::getCantidadEntregada).sum();
+            // 🔥 CORRECCIÓN: Calcular solo sobre pedidos pendientes
+            int totalJuegosSolicitados = pedidosPendientes.stream().mapToInt(Pedido::getJuegos).sum();
+            int totalJuegosEntregados = pedidosPendientes.stream().mapToInt(Pedido::getCantidadEntregada).sum();
 
             if (totalJuegosEntregados + cantidadNueva > totalJuegosSolicitados) {
                 model.addAttribute("error", "🚨 Exceso de producción. Solo puedes registrar " +
@@ -126,6 +140,8 @@ public class EmpaqueController {
             }
 
             repository.save(empaque);
+
+            // 🔥 CORRECCIÓN: Actualizar solo pedidos pendientes
             actualizarPedidosDespuesDeProduccion(medidas);
 
             return "redirect:/empaque";
@@ -267,14 +283,23 @@ public class EmpaqueController {
     }
 
     // ================================
-    // MÉTODOS AUXILIARES EXISTENTES
+    // MÉTODOS AUXILIARES - CORREGIDOS
     // ================================
 
+    // 🔥 MÉTODO CORREGIDO: Solo actualizar pedidos que NO estén completados
     private void actualizarPedidosDespuesDeProduccion(String medidas) {
         LocalDate fechaActual = LocalDate.now();
         List<Pedido> pedidosActivos = pedidoRepository.findByMedidasSabanasAndFechaEnvioAfter(medidas, fechaActual);
 
         if (pedidosActivos.isEmpty())
+            return;
+
+        // 🔥 CORRECCIÓN: Filtrar solo pedidos NO completados
+        List<Pedido> pedidosPendientes = pedidosActivos.stream()
+                .filter(p -> p.getCantidadEntregada() < p.getJuegos())
+                .collect(Collectors.toList());
+
+        if (pedidosPendientes.isEmpty())
             return;
 
         List<Empaque> producciones = repository.findByMedidas(medidas);
@@ -286,7 +311,8 @@ public class EmpaqueController {
             }
         }).sum();
 
-        for (Pedido pedido : pedidosActivos) {
+        // 🔥 CORRECCIÓN: Procesar solo pedidos pendientes
+        for (Pedido pedido : pedidosPendientes) {
             int juegosFaltantes = pedido.getJuegos() - pedido.getCantidadEntregada();
 
             if (juegosFaltantes <= 0)
@@ -301,5 +327,4 @@ public class EmpaqueController {
     private boolean isAuthenticated(HttpSession session) {
         return session.getAttribute("telefono") != null && session.getAttribute("actividad") != null;
     }
-
 }
