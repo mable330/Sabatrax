@@ -1,182 +1,183 @@
+/* ======= VARIABLES Y RESET ======= */
+:root {
+    --primary: #ff6b6b;
+    --primary-light: #ffe6e9;
+    --border: #ffccd5;
+    --hover: #ff9a9e;
+    --text: #3a3a3a;
+    --radius: 20px;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
 
-        body {
-            
-            font-family: 'Poppins', sans-serif;
-            background-color: #000000;
-            /* Fuente moderna y ligera */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-image: url("/img/fondologin.jpeg");
-            
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
 
-        }
+/* ======= FONDO Y BODY ======= */
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+    background-image: url("/img/fondologin.jpeg"), radial-gradient(circle at center, #ffc997ab, #b89f8a);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    position: relative;
+    padding: 20px;
+}
 
-        /* Contenedor del login */
-        .login-container {
-            background-color: #fff;
-            border-radius: 20px;
-            /* Esquinas más redondeadas */
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            /* Sombra más notoria */
-            padding: 40px;
-            /* Más espacio interno */
-            width: 400px;
-            /* Más ancho para mejor disposición */
-            max-width: 100%;
-            text-align: center;
-            transition: transform 0.3s ease;
-            position: relative;
-            /* Para el uso de decoraciones */
-        }
+/* ======= CONTENEDOR LOGIN ======= */
+.login-container {
+    background-color: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 40px;
+    width: 400px;
+    max-width: 100%;
+    text-align: center;
+    position: relative;
+    transition: transform 0.3s ease;
+}
 
-        /* Decoraciones para hacerlo más cute */
-        .login-container::before {
-            content: "";
-            position: absolute;
-            top: -20px;
-            right: -20px;
-            width: 50px;
-            height: 50px;
-            background-color: #ff8d8d;
-            border-radius: 50%;
-            z-index: -1;
-        }
+.login-container:hover {
+    transform: scale(1.03);
+}
 
-        .login-container::after {
-            content: "";
-            position: absolute;
-            bottom: -20px;
-            left: -20px;
-            width: 80px;
-            height: 80px;
-            background-color: #ff8d8d;
-            border-radius: 50%;
-            z-index: -1;
-        }
+/* DECORACIÓN BUBBLE CUTE */
+.login-container::before,
+.login-container::after {
+    content: "";
+    position: absolute;
+    background-color: #ff8d8d;
+    border-radius: 50%;
+    z-index: -1;
+}
+.login-container::before {
+    width: 50px;
+    height: 50px;
+    top: -20px;
+    right: -20px;
+}
+.login-container::after {
+    width: 80px;
+    height: 80px;
+    bottom: -20px;
+    left: -20px;
+}
 
-        .login-container:hover {
-            transform: scale(1.05);
-            /* Animación suave al hacer hover */
-        }
+/* ======= LOGO ======= */
+.logo {
+    display: block;
+    width: 90px;
+    height: auto;
+    margin: 0 auto 15px;
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
 
-        /* Imagen del logo */
-        .logo {
-            display: block;
-            width: 90px;
-            max-width: 100%;
-            height: auto;
-            margin: 0 auto 15px;
-            border-radius: 50%;
-            /* Forma circular cute */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            /* Sombra al logo */
-        }
+/* ======= TÍTULO ======= */
+h1 {
+    color: #000;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
 
-        /* Título */
-        h1 {
-            color: #000000;
-            /* Color cute */
-            margin-bottom: 20px;
-            font-size: 24px;
-            /* Tamaño más grande */
-            font-weight: 600;
-        }
+/* ======= FORMULARIO ======= */
+.form-group {
+    margin-bottom: 20px;
+}
 
-        /* Grupos de formularios */
-        .form-group {
-            margin-bottom: 20px;
-        }
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--text);
+    font-size: 14px;
+}
 
-        /* Estilo para etiquetas */
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: #3a3a3a;
-            font-size: 14px;
-        }
+input[type="text"],
+input[type="password"],
+select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 15px;
+    border: 2px solid var(--border);
+    background-color: var(--primary-light);
+    transition: border-color 0.3s ease;
+}
 
-        /* Inputs de texto y contraseñas */
-        input[type="text"],
-        input[type="password"],
-        select {
-            width: 100%;
-            padding: 12px;
-            /* Padding más amplio */
-            border-radius: 15px;
-            /* Bordes redondeados más visibles */
-            border: 2px solid #ffccd5;
-            /* Bordes cute */
-            background-color: #ffe6e9;
-            transition: border-color 0.3s ease;
-            box-sizing: border-box;
-        }
+input[type="text"]:focus,
+input[type="password"]:focus,
+select:focus {
+    border-color: var(--primary);
+    outline: none;
+}
 
-        /* Estilo al enfocar inputs */
-        input[type="text"]:focus,
-        input[type="password"]:focus,
-        select:focus {
-            border-color: #ff6b6b;
-            /* Color al enfocar */
-            outline: none;
-        }
+/* ======= CONTRASEÑA CON OJO ======= */
+.password-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+}
 
-        /* Contenedor de la contraseña con ojito */
-        .password-container {
-            position: relative;
-            width: 100%;
-            margin-bottom: 20px;
-        }
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--primary);
+    transition: color 0.3s ease;
+}
 
-        .toggle-password {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            font-size: 18px;
-            color: #ff6b6b;
-            transition: color 0.3s ease;
-        }
+.toggle-password:hover {
+    color: var(--hover);
+}
 
-        .toggle-password:hover {
-            color: #ff9a9e;
-        }
+/* ======= BOTÓN DE ENTRAR ======= */
+button {
+    background-color: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    padding: 12px 20px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+}
 
-        /* Botón de inicio de sesión */
-        button {
-            background-color: #ff6b6b;
-            color: #ffffff;
-            border: none;
-            border-radius: 30px;
-            /* Bordes muy redondeados */
-            padding: 12px 20px;
-            /* Padding más grande */
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-            font-weight: 600;
-            transition: background-color 0.3s ease;
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
-            /* Sombra al botón */
-        }
+button:hover {
+    background-color: var(--hover);
+}
 
-        button:hover {
-            background-color: #ff9a9e;
-        }
+/* ======= RESPONSIVE ======= */
+@media (max-width: 480px) {
+    .login-container {
+        padding: 25px;
+        width: 100%;
+    }
 
-        /* Ajustes generales */
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: radial-gradient(circle at center, #ffc997ab, #b89f8a);
-        }
+    h1 {
+        font-size: 20px;
+    }
 
+    .logo {
+        width: 70px;
+    }
+
+    input,
+    button {
+        font-size: 14px;
+    }
+}
