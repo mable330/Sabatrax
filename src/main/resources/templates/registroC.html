@@ -3,186 +3,149 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro de Actividad</title>
+  <title>Registro de Actividad - Corte</title>
   <link rel="stylesheet" th:href="@{/css/registroM.css}">
-    <link rel="icon" th:href="@{/img/loguito.jpeg}" type="image/x-icon">
+  <link rel="icon" th:href="@{/img/loguito.jpeg}" type="image/x-icon">
 </head>
 <body>
 
-<div th:if="${error}" id="errorAlert" style="position: fixed;
-                             top: 40%;
-                             left: 50%;
-                             transform: translate(-50%, -50%);
-                             background-color: #ffe6e6;
-                             color: #b30000;
-                             font-size: 24px;
-                             padding: 25px;
-                             border: 4px solid red;
-                             border-radius: 10px;
-                             z-index: 9999;
-                             min-width: 300px;
-                             text-align: center;
-                             box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-        <strong th:text="${error}" style="flex: 1; text-align: left;"></strong>
-        <button onclick="closeErrorAlert()" style="background: none; 
-                                                  border: none; 
-                                                  color: #b30000; 
-                                                  font-size: 28px; 
-                                                  cursor: pointer; 
-                                                  padding: 0; 
-                                                  margin-left: 15px;
-                                                  font-weight: bold;
-                                                  line-height: 1;">×</button>
-    </div>
-    <button onclick="closeErrorAlert()" style="background-color: #b30000;
-                                              color: white;
-                                              border: none;
-                                              padding: 8px 16px;
-                                              border-radius: 5px;
-                                              cursor: pointer;
-                                              font-size: 16px;
-                                              margin-top: 10px;">
-        Cerrar
-    </button>
+<!-- 🔔 Alerta de error -->
+<div th:if="${error}" id="errorAlert" style="position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); background-color: #ffe6e6; color: #b30000; font-size: 24px; padding: 25px; border: 4px solid red; border-radius: 10px; z-index: 9999; min-width: 300px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+    <strong th:text="${error}" style="flex: 1; text-align: left;"></strong>
+    <button onclick="closeErrorAlert()" style="background: none; border: none; color: #b30000; font-size: 28px; cursor: pointer; margin-left: 15px; font-weight: bold;">×</button>
+  </div>
+  <button onclick="closeErrorAlert()" style="background-color: #b30000; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 16px;">Cerrar</button>
 </div>
 
 <h1>Registrar Nueva Actividad</h1>
 
 <form th:action="@{/corte/registroC}" method="post" enctype="multipart/form-data" th:object="${corte}">
+  <ul>
+    <li>
+      <label>Fecha:</label>
+      <input type="hidden" name="fechaEnvio" th:field="*{fecha}" th:value="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}"/>
+      <div style="padding: 8px; background: #FFC0CB; color: #000000; border-radius: 4px; display: inline-block;">
+        <span th:text="${#temporals.format(#temporals.createToday(), 'EEEE, d MMMM yyyy')}"></span>
+      </div>
+    </li>
 
-    <ul>
-    <label>Fecha:</label>
-<input type="hidden" name="fechaEnvio" th:field="*{fecha}" th:value="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}"/>
-<div style="padding: 8px; background: #FFC0CB; color: #000000; border-radius: 4px; display: inline-block;">
-    <span th:text="${#temporals.format(#temporals.createToday(), 'EEEE, d MMMM yyyy')}"></span>
-</div>
-        <!-- Ejemplo: "viernes, 14 junio 2025" -->
-    </div> 
+    <li>
+      <label>Medidas:</label>
+      <select th:field="*{medidas}" required>
+        <option value="Sencillo">Sencillo</option>
+        <option value="Doble">Doble</option>
+        <option value="Semi doble">Semi doble</option>
+        <option value="Queen">Queen</option>
+        <option value="King">King</option>
+      </select>
+    </li>
 
-   
-      <li>
-        <label>Medidas:</label>
-        <select th:field="*{medidas}" required>
-          <option value="Sencillo">Sencillo</option>
-          <option value="Doble">Doble</option>
-          <option value="Semi doble">Semi doble</option>
-          <option value="Queen">Queen</option>
-          <option value="King">King</option>
-        </select>
-      </li>
+    <li>
+      <label>Cantidad de Juegos de Sábanas:</label>
+      <input type="number" th:field="*{juegos}" required min="1"/>
+    </li>
 
-      <li>
-        <label>Cantidad de Juegos de Sabanas:</label>
-        <input type="number" th:field="*{juegos}" required min="1" />
-      </li>
+    <li>
+      <label>Proveedor:</label>
+      <select th:field="*{proveedor}" required>
+        <option value="Andu">Andu</option>
+        <option value="Samitex">Samitex</option>
+      </select>
+    </li>
 
-      <li>
-        <label>Proveedor:</label>
-        <select th:field="*{proveedor}" required>
-          <option value="Andu">Andu</option>
-          <option value="Samitex">Samitex</option>
-        </select>
-      </li>
+    <li>
+      <label>Novedades:</label>
+      <input type="text" th:field="*{novedades}" required/>
+    </li>
 
-      <li>
-        <label>Novedades:</label>
-        <input type="text" th:field="*{novedades}" required />
-      </li>
-
-  <li>
-            <!-- Entrada oculta de la imagen -->
-            <input type="file" name="imagenFile" id="imagen" accept="image/*" hidden>
-
-            <!-- Botones de control de cámara -->
-            <input type="button" id="openCamera" value="Abrir Cámara">
-            <input type="button" id="switchCam" value="Cambiar Cámara" style="display:none;">
-            <video id="video" width="500" height="600" autoplay muted playsinline style="display:none;"></video>
-            <input type="button" id="capture" value="Tomar Foto" style="display:none;">
-            <canvas id="canvas" width="500" height="500" style="display:none;"></canvas>
-            <input type="submit" id="savePhoto" value="Guardar Foto" style="display:none;">
-        </li>
-    </ul>
+    <li>
+      <!-- Cámara -->
+      <input type="file" name="imagenFile" id="imagen" accept="image/*" hidden>
+      <input type="button" id="openCamera" value="Abrir Cámara">
+      <input type="button" id="switchCam" value="Cambiar Cámara" style="display:none;">
+      <video id="video" autoplay muted playsinline style="width:100%; max-width:400px; display:none;"></video>
+      <input type="button" id="capture" value="Tomar Foto" style="display:none;">
+      <canvas id="canvas" style="display:none;"></canvas>
+      <input type="submit" id="savePhoto" value="Guardar Foto" style="display:none;">
+    </li>
+  </ul>
 </form>
 
 <!-- Mensaje de éxito -->
-<div th:if="${param.exito}" style="color: green;">
-    Registro guardado exitosamente!
-</div>
+<div th:if="${param.exito}" style="color: green;">Registro guardado exitosamente!</div>
 
-<!-- Mensaje de error -->
+<!-- Mensaje de error adicional -->
 <div th:if="${error}" style="color: red;" th:text="${error}"></div>
 
+<script>
+  function closeErrorAlert() {
+    const el = document.getElementById('errorAlert');
+    if (el) el.style.display = 'none';
+  }
 
-  <script>
-    function closeErrorAlert() {
-        const errorAlert = document.getElementById('errorAlert');
-        if (errorAlert) {
-            errorAlert.style.display = 'none';
-        }
+  const video = document.getElementById('video'),
+        canvas = document.getElementById('canvas'),
+        context = canvas.getContext('2d'),
+        openBtn = document.getElementById('openCamera'),
+        switchBtn = document.getElementById('switchCam'),
+        captureBtn = document.getElementById('capture'),
+        saveBtn = document.getElementById('savePhoto'),
+        inputImg = document.getElementById('imagen');
+
+  let currentFacing = 'environment', currentStream = null;
+
+  async function startCamera(facingMode) {
+    if (currentStream) currentStream.getTracks().forEach(track => track.stop());
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: facingMode } }
+      });
+      currentStream = stream;
+      video.srcObject = stream;
+      video.style.display = 'block';
+      captureBtn.style.display = 'inline';
+      switchBtn.style.display = 'inline';
+    } catch (err) {
+      alert('Error al acceder a la cámara: ' + err.message);
     }
+  }
 
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const context = canvas.getContext('2d');
-    const openCameraBtn = document.getElementById('openCamera');
-    const switchCamBtn = document.getElementById('switchCam');
-    const captureBtn = document.getElementById('capture');
-    const saveBtn = document.getElementById('savePhoto');
-    const imagenInput = document.getElementById('imagen');
+  openBtn.addEventListener('click', () => {
+    startCamera(currentFacing);
+    openBtn.style.display = 'none';
+  });
 
-    let currentFacingMode = "environment";
-    let currentStream = null;
+  switchBtn.addEventListener('click', () => {
+    currentFacing = currentFacing === 'user' ? 'environment' : 'user';
+    startCamera(currentFacing);
+  });
 
-    async function startCamera(facingMode) {
-        if (currentStream) {
-            currentStream.getTracks().forEach(track => track.stop());
-        }
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: { exact: facingMode } }
-            });
-            currentStream = stream;
-            video.srcObject = stream;
-            video.style.display = 'block';
-            captureBtn.style.display = 'inline';
-            switchCamBtn.style.display = 'inline';
-        } catch (err) {
-            alert("Error al acceder a la cámara: " + err.message);
-        }
-    }
+  captureBtn.addEventListener('click', () => {
+    const w = video.videoWidth, h = video.videoHeight;
+    canvas.width = w;
+    canvas.height = h;
+    context.drawImage(video, 0, 0, w, h);
+    canvas.toBlob(blob => {
+      const file = new File([blob], 'captura.png', { type: 'image/png' });
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      inputImg.files = dt.files;
+      // Ocultar cámara y mostrar canvas
+      video.style.display = 'none';
+      captureBtn.style.display = 'none';
+      switchBtn.style.display = 'none';
+      canvas.style.display = 'block';
+      saveBtn.style.display = 'inline';
+      if (currentStream) currentStream.getTracks().forEach(track => track.stop());
+    }, 'image/png');
+  });
 
-    openCameraBtn.addEventListener('click', () => {
-        startCamera(currentFacingMode);
-        openCameraBtn.style.display = 'none';
-    });
-
-    switchCamBtn.addEventListener('click', () => {
-        currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
-        startCamera(currentFacingMode);
-    });
-
-    captureBtn.addEventListener('click', () => {
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob((blob) => {
-            const file = new File([blob], "captura.png", { type: "image/png" });
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            imagenInput.files = dataTransfer.files;
-
-            // Ocultar cámara y mostrar canvas
-            video.style.display = 'none';
-            captureBtn.style.display = 'none';
-            switchCamBtn.style.display = 'none';
-            canvas.style.display = 'block';
-            saveBtn.style.display = 'inline';
-
-            // Detener cámara
-            if (currentStream) {
-                currentStream.getTracks().forEach(track => track.stop());
-            }
-        }, 'image/png');
-    });
+  // Muestra botón de cambiar cámara solo si hay más de una
+  navigator.mediaDevices.enumerateDevices().then(devices => {
+    const count = devices.filter(d => d.kind === 'videoinput').length;
+    if (count > 1) switchBtn.style.display = 'inline';
+  });
 </script>
 </body>
 </html>
