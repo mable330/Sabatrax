@@ -1,0 +1,206 @@
+:root {
+  --primary: #FF8FAB;
+  --primary-light: #FFD1DC;
+  --accent: #FAD4C0;
+  --beige: #FFF5F0;
+  --background: #ffe8ef;
+  --text: #4A4A4A;
+  --text-light: #777;
+  --white: #FFFFFF;
+  --radius: 12px;
+  --shadow: 0 4px 12px rgba(255, 143, 171, 0.15);
+  --transition: all 0.3s ease-in-out;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--background);
+  background-image: url("/img/beige.jpg");
+  background-size: cover;
+  background-attachment: fixed;
+  color: var(--text);
+  padding: 30px;
+}
+
+/* ========== CONTENEDOR ========== */
+.container {
+  max-width: 1200px;
+  margin: auto;
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 30px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--primary-light);
+  backdrop-filter: blur(3px);
+}
+
+/* ========== MENSAJE DE BIENVENIDA ========== */
+.welcome-section {
+  background-color: var(--beige);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 30px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.welcome-section h2 {
+  color: var(--primary-dark);
+  font-size: 1.6rem;
+  margin-bottom: 5px;
+}
+
+.welcome-section p {
+  font-size: 1rem;
+  color: var(--text-light);
+}
+
+/* ========== BOTÓN NUEVA ACTIVIDAD ========== */
+.btn-nuevo {
+  background-color: var(--primary);
+  color: var(--white);
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-weight: bold;
+  transition: var(--transition);
+}
+
+.btn-nuevo:hover {
+  background-color: var(--primary-dark);
+  color: var(--white);
+}
+
+/* ========== TABLA ========== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: white;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+th, td {
+  padding: 14px;
+  border-bottom: 1px solid var(--primary-light);
+  text-align: center;
+}
+
+/* 👇 Esto es lo que pediste: Tabla completamente blanca */
+th {
+  background-color: white;
+  color: var(--text);
+  font-weight: 600;
+}
+
+td {
+  background-color: white;
+}
+
+td img {
+  border-radius: var(--radius);
+  border: 2px solid var(--accent);
+  object-fit: cover;
+  width: 100px;
+  height: 100px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.m {
+  background-color: var(--primary);
+  color: var(--white);
+  border: none;
+  padding: 10px 18px;
+  font-weight: bold;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.m:hover {
+  background-color: var(--primary-dark);
+  color: var(--white);
+}
+
+.btn-nuevo {
+  background-color: var(--primary);
+  color: var(--white);
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-weight: bold;
+  transition: var(--transition);
+}
+
+.btn-nuevo:hover {
+  background-color: var(--primary-dark);
+  color: var(--white);
+}
+
+
+/* ========== RESULTADO (SALARIO) ========== */
+.resultado {
+  background-color: var(--accent);
+  padding: 20px;
+  border-radius: var(--radius);
+  margin-top: 30px;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #721c24;
+  font-weight: bold;
+  box-shadow: var(--shadow);
+}
+
+/* ========== BOTÓN PDF ========== */
+.btn-pdf {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background-color: #d988a5;
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius);
+  font-weight: bold;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-pdf:hover {
+  background-color: #c27191;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .container {
+    padding: 20px;
+  }
+
+  table, th, td {
+    font-size: 0.85rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .welcome-section h2 {
+    font-size: 1.3rem;
+  }
+}
+

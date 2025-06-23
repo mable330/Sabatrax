@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Empleados</title>
+    <link rel="stylesheet" th:href="@{/css/empleado.css}" />
+          <link rel="icon" th:href="@{/img/loguito.jpeg}" type="image/x-icon">
+
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- CONTENEDOR PRINCIPAL -->
+<div class="layout-principal">
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div id="contenido">
+
+        <!-- BOTONES SUPERIORES -->
+        <div class="botones-superiores">
+            <button onclick="window.location.href='/registro-empleado'">Agregar Empleado</button>
+            <button onclick="window.location.href='/admin'">Página Principal</button>
+        </div>
+
+        <!-- CUADRO DE EMPLEADOS ARRIBA -->
+        <div class="empleados-section">
+            <h2>Empleados Registrados</h2>
+            <ul>
+                <li th:each="emp : ${empleados}">
+                    <a th:href="@{/empleado(telefono=${emp.telefono})}"
+                       th:text="${emp.nombre + ' ' + emp.apellido}"></a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- FORMULARIO DE EMPLEADO -->
+        <div class="contenido-formulario formulario-horizontal" th:if="${empleadoSeleccionado != null}">
+            <h2 class="titulo-formulario">Información del Empleado</h2>
+            <form th:action="@{/empleado}" method="post">
+                <input type="hidden" name="telefono" th:value="${empleadoSeleccionado.telefono}" />
+
+                <div class="form-group-horizontal">
+                    <label>Nombre:</label>
+                    <input type="text" name="nombre" th:value="${empleadoSeleccionado.nombre}" required>
+
+                    <label>Apellido:</label>
+                    <input type="text" name="apellido" th:value="${empleadoSeleccionado.apellido}" required>
+                </div>
+
+                <div class="form-group-horizontal">
+                    <label>Número:</label>
+                    <input type="tel" th:value="${empleadoSeleccionado.telefono}" readonly>
+
+                    <label>Rol:</label>
+                    <input type="text" th:value="${empleadoSeleccionado.rol}" readonly>
+                </div>
+
+                <div class="form-group-horizontal">
+                    <label>Correo Electrónico:</label>
+                    <input type="email" name="correo" th:value="${empleadoSeleccionado.correo}" readonly>
+                </div>
+
+                <div class="form-group-horizontal">
+                    <label>Área de Trabajo:</label>
+                    <select name="actividad" disabled>
+                        <option value="Maquina" th:selected="${empleadoSeleccionado.actividad == 'Maquina'}">Máquina</option>
+                        <option value="Corte" th:selected="${empleadoSeleccionado.actividad == 'Corte'}">Corte</option>
+                        <option value="Empaque" th:selected="${empleadoSeleccionado.actividad == 'Empaque'}">Empaque</option>
+                    </select>
+
+                    <label>Clave:</label>
+                    <input type="password" name="password" th:value="${empleadoSeleccionado.password}" required>
+                </div>
+
+                <div class="botonera">
+                    <button type="submit" name="accion" value="modificar">Modificar</button>
+                    <button type="submit" name="accion" value="eliminar"
+                            onclick="return confirm('¿Eliminar este empleado?');">Eliminar</button>
+                    <button type="submit" name="accion" value="actualizar">Actualizar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- MENSAJE CUANDO NO HAY EMPLEADO SELECCIONADO -->
+        <div class="contenido-formulario mensaje-seleccion" th:if="${empleadoSeleccionado == null}">
+            <h2>Selecciona un empleado del menú para ver su información</h2>
+        </div>
+
+    </div>
+</div>
+
+<!-- LOGO FIJO -->
+<img th:src="@{/img/loguito.jpeg}" alt="Logo" class="logo-fija">
+
+</body>
+</html>

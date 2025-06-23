@@ -1,0 +1,94 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Fondo general cute */
+body {
+  background-color: #ffeaea;
+  background-image: url('/img/fondoadmin.jpg'); /* opcional: pon un fondo suave */
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Título principal */
+h1 {
+  color: #d96c79;
+  font-size: 28px;
+  margin-bottom: 30px;
+  background-color: #fff0f5;
+  padding: 15px 25px;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(217, 108, 121, 0.2);
+}
+
+/* Estilo del formulario */
+form {
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+/* Label */
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #5a3e36;
+}
+
+/* Input de archivo */
+input[type="file"] {
+  background-color: #fff5f5;
+  border: 2px dashed #f4a6a6;
+  padding: 10px;
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  color: #5a3e36;
+}
+
+/* Botón subir */
+button {
+  background-color: #f4a6a6;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-weight: bold;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #e18a8a;
+  transform: scale(1.05);
+}
+
+/* Enlace volver */
+a {
+  margin-top: 30px;
+  display: inline-block;
+  text-decoration: none;
+  color: #b55b6b;
+  background-color: #fff0f0;
+  padding: 10px 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: background-color 0.3s ease;
+}
+
+a:hover {
+  background-color: #ffe0e0;
+}

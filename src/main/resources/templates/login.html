@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de Sesión</title>
+    <link rel="stylesheet" th:href="@{/css/login.css}" />
+      <link rel="icon" th:href="@{/img/loguito.jpeg}" type="image/x-icon">
+  <!-- <link rel="stylesheet" href="src/main/resources/static/css/login.css"> -->
+    
+
+
+    <script>
+        function toggleSection() {
+            var role = document.getElementById("Rol").value;
+            var sectionContainer = document.getElementById("section");
+
+            if (role === "1") {
+                sectionContainer.style.display = "block";
+            } else {
+                sectionContainer.style.display = "none";
+            }
+        }
+
+        window.onload = function () {
+            document.getElementById("Rol").addEventListener("change", toggleSection);
+            toggleSection();
+        };
+
+        function togglePassword() {
+            var passwordField = document.getElementById("password");
+            var passwordToggle = document.querySelector(".toggle-password");
+
+            if (passwordField.type === "password") {
+                passwordField.type = "text";
+                passwordToggle.textContent = "🙈";
+            } else {
+                passwordField.type = "password";
+                passwordToggle.textContent = "👁️";
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div class="login-container">
+        <img th:src="@{/img/loguito.jpeg}" alt="Logo" class="logo">
+        <h1>Inicio de Sesión</h1>
+        <form th:action="@{/login}" method="POST">
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+          
+            <div>
+                <label for="Telefono">Teléfono:</label>
+                <input type="text" id="Telefono" name="telefono" required>
+            </div>
+           
+            <div>
+                <label for="password">Contraseña:</label>
+                <div class="password-container">
+                    <input type="password" id="password" name="password" required>
+                    <span class="toggle-password" onclick="togglePassword()">👁️</span>
+                </div>
+            </div>
+            <button type="submit">Iniciar Sesión</button>
+     
+        <div class="footer-info">
+            <p>¿Olvidaste tu contraseña? Contacta al administrador</p>
+        </div>
+    </div>
+</form>
+</body>
+</html>

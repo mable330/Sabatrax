@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${asunto}">Correo Masivo</title>
+</head>
+<body style="font-family: 'Poppins', Arial, sans-serif; margin: 0; padding: 0; background-color: #fff4f6;">
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <tr>
+            <td style="padding: 30px;">
+
+                <!-- Encabezado -->
+                <h2 th:text="${asunto}" style="margin: 0 0 10px 0; font-size: 24px; color: #c66c81;">Asunto del Correo</h2>
+                <hr style="border: 0; height: 1px; background-color: #f0c2c7; margin: 20px 0;">
+
+                <!-- Contenido -->
+                <div th:utext="${contenidoMensaje}" style="color: #5a3e36; font-size: 16px; line-height: 1.6;"></div>
+
+                <!-- Firma opcional -->
+                <p style="margin-top: 40px; font-size: 14px; color: #999;">Gracias por tu atención. <br>🌸Equipo Sabatrax🌸</p>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>

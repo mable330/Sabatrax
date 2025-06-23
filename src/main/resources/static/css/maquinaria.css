@@ -1,0 +1,134 @@
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Ubuntu', sans-serif;
+    }
+
+    :root {
+      --primary-pink: #f8f3f8;
+      --secondary-pink: #E66E479C;
+      --white: #fff;
+      --light-grey: #f5f5f5;
+      --black1: #222;
+      --black2: #999;
+    }
+
+    body {
+                    background: url('/img/beige.jpg') no-repeat center center fixed;
+    background-size: cover;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-color: var(--primary-pink);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin: 20px 0;
+      color: var(--black1);
+    }
+
+    .barra-busqueda {
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--secondary-pink);
+      color: var(--white);
+    }
+
+    .barra-busqueda form input {
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .barra-busqueda form button {
+      padding: 10px 20px;
+      border: none;
+      background-color: var(--black1);
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .nuevo-link {
+      display: inline-block;
+      margin: 10px 15px;
+      padding: 10px 15px;
+      background-color: var(--secondary-pink);
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+
+    .nuevo-link:hover {
+      background-color: #F56E64FF;
+    }
+
+    table {
+      width: 95%;
+      margin: 0 auto;
+      border-collapse: collapse;
+      background-color: var(--white);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    thead tr {
+      background-color: var(--secondary-pink);
+      color: var(--white);
+    }
+
+    tbody tr:hover {
+      background-color: var(--secondary-pink);
+      color: var(--white);
+    }
+
+    td a {
+      color: var(--black1);
+      text-decoration: none;
+      margin: 0 5px;
+    }
+
+    td a:hover {
+      text-decoration: underline;
+      color: var(--secondary-pink);
+    }
+
+    a[href="/admin"] {
+      text-decoration: none;
+      font-size: 20px;
+      color: var(--white);
+      margin-left: 10px;
+    }
+
+    @media (max-width: 770px) {
+      h1 {
+        font-size: 22px;
+      }
+
+      .barra-busqueda {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      .nuevo-link {
+        display: block;
+        margin: 10px auto;
+      }
+    }
+  

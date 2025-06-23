@@ -1,0 +1,93 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-image: url('img/q.jpg'); /* imagen del cielo con nubes */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    font-family: 'Poppins', sans-serif; /* Fuente general */
+}
+
+.titulo {
+  text-align: center;
+  font-weight: bold;
+  font-size: 30px;
+  margin-bottom: 20px;
+  font-family: 'Winky Rough', cursive; /* Fuente del título */
+  color: #000000; /* Rosa lindo */
+}
+  
+  .fondo-con-marco {
+    position: relative;
+    width: 800px;
+    height: 700px;
+    margin: 50px auto;
+  }
+  
+  .marco-cute {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    object-fit: cover;
+    border-radius: 40px;
+  }
+  
+  /* El formulario dentro de la imagen rosada */
+  .formulario-container {
+    position: absolute;
+    top: 80px;
+    left: 50px;
+    right: 50px;
+    bottom: 50px;
+    z-index: 2;
+    padding: 20px;
+    background-color: transparent;
+    overflow-y: auto;
+  }
+  
+  .formulario label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  .formulario input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: none;
+    border-radius: 10px;
+    background-color: #ffe7ef;
+  }
+  
+  .formulario button {
+    width: 100%;
+    padding: 10px;
+    background-color: #f8a6c9;
+    border: none;
+    border-radius: 20px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 25px; /* 👈 Ajusta este valor para bajarlo más o menos */
+  }
+  .boton-regresar {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #f0f0f0;
+    color: #000000;
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 8px;
+    border: 2px solid #d3d3d3;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.boton-regresar:hover {
+    background-color: #d3d3d3;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}

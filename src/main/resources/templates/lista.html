@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Actividades</title>
+    <link rel="stylesheet" th:href="@{/css/lista.css}">
+      <link rel="icon" th:href="@{/img/loguito.jpeg}" type="image/x-icon">
+</head>
+<body>
+<div class="container">
+
+    <!-- Mensaje de bienvenida personalizado -->
+    <div class="welcome-section" style="text-align: center; margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+        <h2 th:text="${mensajeBienvenida}" style="color: #2c3e50; margin: 0;">Bienvenido a Máquina</h2>
+        <p style="margin: 5px 0; color: #7f8c8d;">
+            <strong th:text="${nombreEmpleado}">Nombre del Empleado</strong> - 
+            <span th:text="${totalRegistros}">0</span> actividades registradas
+        </p>
+    </div>
+
+    <h3 style="text-align: center; color: #34495e;">Mis Actividades Realizadas</h3>
+
+    
+ <div id="advertencia" style="display: none; background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center;">
+        <strong>⚠️ Advertencia:</strong> Por favor, selecciona al menos una actividad antes de continuar.
+    </div>
+   
+    <form method="POST" th:action="@{/lista/calcular}"  id="actividadesForm">
+
+       
+        <div class="button-group" style="margin-bottom: 20px;">
+             <input type="submit" class="m" value="Calcular" onclick="return validarSeleccion('calcular')">
+
+
+            <input type="submit" class="m" value="Eliminar" formaction="/lista/eliminar"
+                   onclick="return confirm('¿Estás seguro de que deseas eliminar estas filas?');">
+
+            <input type="button" class="m" value="Cerrar Sesión" onclick="window.location.href='/login'">
+
+               <input type="button" class="m" value="Seleccionar Todo" onclick="seleccionarTodo()">
+
+            <a th:href="@{/registroM}" class="btn-nuevo" style="margin-left: auto;">Nueva Actividad</a>
+        </div>
+
+
+        <table>
+            <tr>
+                <th></th>
+                <th>Fecha</th>
+                <th>Medidas</th>
+                <th>Tipo Sábanas</th>
+                <th>Proveedor</th>
+                <th>Novedades</th>
+                <th>Cantidad</th>
+                <th>Evidencia</th>
+            </tr>
+            <tr th:each="maquina : ${maquinas}">
+                <td><input type="checkbox" name="selectedRows" th:value="${maquina.id}"></td>
+                <td th:text="${#dates.format(maquina.fecha, 'dd/MM/yyyy')}"></td>
+                <td th:text="${maquina.medidas}"></td>
+                <td th:text="${maquina.tipo_sabanas}"></td>
+                <td th:text="${maquina.proveedor}"></td>
+                <td th:text="${maquina.novedades}"></td>
+                <td th:text="${maquina.cantidad}"></td>
+                <td>
+                    <img th:if="${maquina.imagen != null}"
+                         th:src="@{'data:image/jpeg;base64,' + ${maquina.imagenBase64}}"
+                         width="100" height="100"
+                         alt="Evidencia">
+                </td>
+            </tr>
+        </table>
+
+    </form>
+
+
+   <div th:if="${total != null}" class="resultado">
+    <p>Su Salario es de: $<span th:text="${#numbers.formatDecimal(total, 0, 'POINT', 0, 'COMMA')}"></span></p>
+    <form action="/pdf/generar" method="post">
+        <input type="hidden" th:each="id : ${param.selectedRows}" name="selectedRows" th:value="${id}">
+        <input type="hidden" name="total" th:value="${total}">
+        <input type="submit" value="Generar PDF" class="btn-pdf">
+    </form>
+</div>
+</div>
+<script>
+function validarSeleccion(accion) {
+    // Obtener todos los checkboxes marcados
+    const checkboxes = document.querySelectorAll('input[name="selectedRows"]:checked');
+    const advertencia = document.getElementById('advertencia');
+    
+    if (checkboxes.length === 0) {
+        // Mostrar advertencia
+        advertencia.style.display = 'block';
+        
+        // Hacer scroll hacia la advertencia para que sea visible
+        advertencia.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Opcional: hacer que la advertencia se desvanezca después de unos segundos
+        setTimeout(function() {
+            if (advertencia.style.display === 'block') {
+                advertencia.style.opacity = '0.7';
+            }
+        }, 3000);
+        
+        return false; // Prevenir el envío del formulario
+    }
+    
+    // Si hay selección, ocultar advertencia y continuar
+    advertencia.style.display = 'none';
+    return true;
+}
+
+function ocultarAdvertencia() {
+    // Ocultar la advertencia cuando el usuario selecciona un checkbox
+    const advertencia = document.getElementById('advertencia');
+    if (advertencia.style.display === 'block') {
+        advertencia.style.display = 'none';
+        advertencia.style.opacity = '1'; // Restaurar opacidad
+    }
+}
+
+function seleccionarTodo() {
+    const checkboxes = document.querySelectorAll('input[name="selectedRows"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    ocultarAdvertencia();
+}
+
+function deseleccionarTodo() {
+    const checkboxes = document.querySelectorAll('input[name="selectedRows"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+}
+
+// Función adicional para mejorar la experiencia del usuario
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Página cargada correctamente');
+});
+</script>
+</body>
+</html>

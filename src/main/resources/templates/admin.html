@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}" />
+      <link rel="icon" th:href="@{/img/loguito.jpeg}" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Barra superior con flexbox -->
+    <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 15px 30px; background-color: #cf9798; position: fixed; top: 0; z-index: 1000;">
+        <!-- Imagen a la izquierda -->
+        <img th:src="@{/img/loguito.jpeg}" alt="Logo" style="height: 40px; margin-right: auto;">
+        
+        <!-- Título centrado -->
+        <div class="header-title" style="position: absolute; left: 50%; transform: translateX(-50%); color: white; font-weight: 600;">Sabatrax</div>
+        
+        <!-- Botón a la derecha -->
+        <a th:href="@{/login}" class="logout-button" style="margin-left: auto; background-color: #e74c3c; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-weight: 600;">Cerrar sesión</a>
+    </div>
+
+    <!-- Contenido principal -->
+    <div style="margin-top: 80px; padding: 20px;">
+        <div class="header">
+            <h1>Panel de Administración</h1>
+            <div class="card">
+                <h2>Bienvenido al panel de administrador</h2>
+                <p>Utiliza las opciones de navegación para gestionar empleados, revisar reportes o enviar mensajes.</p>
+            </div>
+        </div>
+        
+
+<!-- Slider con flechas manuales -->
+<div class="slider-manual">
+    <button class="slider-btn left" onclick="moverSlide(-1)">&#10094;</button>
+
+    <div class="slider-window" id="sliderWindow">
+        <div class="slider-content" id="sliderContent">
+            <div class="slide"><a th:href="@{/empleado}"><img th:src="@{/img/empleado1.png}" alt="Empleado"></a></div>
+            <div class="slide"><a th:href="@{/pedidos}"><img th:src="@{/img/pedidos.jpg}" alt="pedido"></a></div>
+            <div class="slide"><a th:href="@{/correo/masivo}"><img th:src="@{/img/correos.jpg}" alt="mensajes"></a></div>
+            <div class="slide"><a th:href="@{/precios}"><img th:src="@{/img/nomina.jpg}" alt="precios"></a></div>
+        </div>
+    </div>
+
+    <button class="slider-btn right" onclick="moverSlide(1)">&#10095;</button>
+</div>
+
+
+
+
+
+
+
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2025 Sabatrax. Todos los derechos reservados.</p>
+            <p>Desarrollado por Mabel & Annie / Equipo de Desarrollo.</p>
+        </div>
+        <script>
+let currentSlide = 0;
+
+function moverSlide(direction) {
+    const slider = document.getElementById('sliderWindow');
+    const content = document.getElementById('sliderContent');
+    const slides = document.querySelectorAll('.slide');
+    const slideWidth = slides[0].offsetWidth + 20; // 20px de margen total (10px cada lado)
+    const visibleSlides = Math.floor(slider.offsetWidth / slideWidth);
+
+    currentSlide += direction;
+
+    if (currentSlide < 0) {
+        currentSlide = slides.length - visibleSlides;
+    } else if (currentSlide > slides.length - visibleSlides) {
+        currentSlide = 0;
+    }
+
+    const offset = currentSlide * slideWidth;
+
+    content.style.transform = `translateX(-${offset}px)`;
+}
+</script>
+
+
+    </footer>
+</body>
+</html>

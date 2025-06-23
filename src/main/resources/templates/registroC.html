@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Actividad</title>
+  <link rel="stylesheet" th:href="@{/css/registroM.css}">
+    <link rel="icon" th:href="@{/img/loguito.jpeg}" type="image/x-icon">
+</head>
+<body>
+
+<div th:if="${error}" id="errorAlert" style="position: fixed;
+                             top: 40%;
+                             left: 50%;
+                             transform: translate(-50%, -50%);
+                             background-color: #ffe6e6;
+                             color: #b30000;
+                             font-size: 24px;
+                             padding: 25px;
+                             border: 4px solid red;
+                             border-radius: 10px;
+                             z-index: 9999;
+                             min-width: 300px;
+                             text-align: center;
+                             box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+        <strong th:text="${error}" style="flex: 1; text-align: left;"></strong>
+        <button onclick="closeErrorAlert()" style="background: none; 
+                                                  border: none; 
+                                                  color: #b30000; 
+                                                  font-size: 28px; 
+                                                  cursor: pointer; 
+                                                  padding: 0; 
+                                                  margin-left: 15px;
+                                                  font-weight: bold;
+                                                  line-height: 1;">×</button>
+    </div>
+    <button onclick="closeErrorAlert()" style="background-color: #b30000;
+                                              color: white;
+                                              border: none;
+                                              padding: 8px 16px;
+                                              border-radius: 5px;
+                                              cursor: pointer;
+                                              font-size: 16px;
+                                              margin-top: 10px;">
+        Cerrar
+    </button>
+</div>
+
+<h1>Registrar Nueva Actividad</h1>
+
+<form th:action="@{/corte/registroC}" method="post" enctype="multipart/form-data" th:object="${corte}">
+
+    <ul>
+     <label>Fecha:</label>
+    <input type="hidden" name="fechaEnvio" th:field="*{fecha}"
+           th:value="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}"/>
+    <div style="padding: 8px; background: #000000FF; border-radius: 4px; display: inline-block;">
+        <span th:text="${#temporals.format(#temporals.createToday(), 'EEEE, d MMMM yyyy')}"></span>
+        <!-- Ejemplo: "viernes, 14 junio 2025" -->
+    </div> 
+
+   
+      <li>
+        <label>Medidas:</label>
+        <select th:field="*{medidas}" required>
+          <option value="Sencillo">Sencillo</option>
+          <option value="Doble">Doble</option>
+          <option value="Semi doble">Semi doble</option>
+          <option value="Queen">Queen</option>
+          <option value="King">King</option>
+        </select>
+      </li>
+
+      <li>
+        <label>Cantidad de Juegos de Sabanas:</label>
+        <input type="number" th:field="*{juegos}" required min="1" />
+      </li>
+
+      <li>
+        <label>Proveedor:</label>
+        <select th:field="*{proveedor}" required>
+          <option value="Andu">Andu</option>
+          <option value="Samitex">Samitex</option>
+        </select>
+      </li>
+
+      <li>
+        <label>Novedades:</label>
+        <input type="text" th:field="*{novedades}" required />
+      </li>
+
+      <li>
+<input type="file" name="imagenFile" id="imagen" accept="image/*" hidden>
+        <input type="button" id="openCamera" value="Abrir Cámara">
+        <video id="video" width="500" height="600" autoplay style="display:none;"></video>
+        <input type="button" id="capture" value="Tomar Foto" style="display:none;">
+        <canvas id="canvas" width="500" height="500" style="display:none;"></canvas>
+        <input type="submit" id="savePhoto" value="Guardar" style="display:none;">
+      </li>
+    </ul>
+</form>
+
+<!-- Mensaje de éxito -->
+<div th:if="${param.exito}" style="color: green;">
+    Registro guardado exitosamente!
+</div>
+
+<!-- Mensaje de error -->
+<div th:if="${error}" style="color: red;" th:text="${error}"></div>
+
+
+  <script>
+    function closeErrorAlert() {
+        const errorAlert = document.getElementById('errorAlert');
+        if (errorAlert) {
+            errorAlert.style.display = 'none';
+        }
+    }
+
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    const openCameraBtn = document.getElementById('openCamera');
+    const captureBtn = document.getElementById('capture');
+    const saveBtn = document.getElementById('savePhoto');
+    const imagenInput = document.getElementById('imagen');
+
+    openCameraBtn.addEventListener('click', () => {
+        navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+            video.srcObject = stream;
+            video.style.display = 'block';
+            captureBtn.style.display = 'inline';
+            openCameraBtn.style.display = 'none';
+        }).catch((error) => {
+            alert("Error al acceder a la cámara: " + error);
+        });
+    });
+
+    captureBtn.addEventListener('click', () => {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+            const file = new File([blob], "captura.png", { type: "image/png" });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            imagenInput.files = dataTransfer.files;
+            video.srcObject.getTracks().forEach(track => track.stop());
+
+            video.style.display = 'none';
+            captureBtn.style.display = 'none';
+            canvas.style.display = 'block';
+            saveBtn.style.display = 'inline';
+        }, 'image/png');
+    });
+</script>
+</body>
+</html>

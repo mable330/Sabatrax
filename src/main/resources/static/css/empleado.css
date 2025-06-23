@@ -1,0 +1,218 @@
+/* ESTILOS GENERALES */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Nunito', sans-serif;
+    background-color: #FFF5F7;
+    color: #333;
+}
+
+.layout-principal {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+#contenido {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+    background-color: #FFF9FB;
+    display: flex;
+    flex-direction: column;
+}
+
+/* BOTONES SUPERIORES */
+.botones-superiores {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-bottom: 35px;
+    flex-wrap: wrap;
+}
+
+.botones-superiores button {
+    background-color: #ffb49d;
+    color: rgb(0, 0, 0);
+    border: none;
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-size: 1rem;
+    font-weight: 700;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.botones-superiores button:hover {
+    background-color: #FF6F91;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* SECCIÓN DE EMPLEADOS */
+.empleados-section {
+    margin-bottom: 40px;
+}
+
+.empleados-section h2 {
+    font-size: 1.8rem;
+    text-align: center;
+    margin-bottom: 25px;
+    color: #bb7b59;
+    border-bottom: 2px dotted #FFB6C1;
+    padding-bottom: 10px;
+}
+
+.empleados-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 auto;
+    max-width: 600px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+}
+
+.empleados-section ul li a {
+    display: block;
+    padding: 12px 18px;
+    background-color: #FFE9ED;
+    color: #000000;
+    text-decoration: none;
+    border-radius: 10px;
+    border: 1px solid #FFD1DC;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.empleados-section ul li a:hover {
+    background-color: #FFB6C1;
+    color: white;
+    transform: translateY(-3px);
+}
+
+/* FORMULARIO HORIZONTAL */
+.formulario-horizontal form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.form-group-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.form-group-horizontal label {
+    width: 120px;
+    font-weight: 700;
+    font-size: 1rem;
+    text-align: right;
+}
+
+.form-group-horizontal input,
+.form-group-horizontal select {
+    flex: 1;
+    min-width: 200px;
+    padding: 12px 16px;
+    border: 2px solid #FAD4C0;
+    border-radius: 12px;
+    background-color: #FFF9FB;
+    font-size: 1rem;
+}
+
+.contenido-formulario {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 35px;
+    flex-grow: 1;
+}
+
+.titulo-formulario {
+    font-size: 1.8rem;
+    color: #000000;
+    margin-bottom: 30px;
+    text-align: center;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #FFD1DC;
+}
+
+.botonera {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.botonera button {
+    flex: 1;
+    min-width: 150px;
+    padding: 16px 24px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+button[value="modificar"] {
+    background-color: #EC7455;
+}
+
+button[value="eliminar"] {
+    background-color: #FF6B6B;
+}
+
+button[value="actualizar"] {
+    background-color: #FF8FAB;
+}
+
+.botonera button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0.95;
+}
+
+.logo-fija {
+    width: 50px;
+    height: 50px;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 999;
+    border-radius: 50%;
+    border: 2px solid #FFB6C1;
+    padding: 4px;
+    background-color: white;
+    box-shadow: 0 4px 10px rgba(255, 182, 193, 0.3);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.logo-fija:hover {
+    transform: scale(1.15);
+    box-shadow: 0 6px 15px rgba(255, 143, 171, 0.4);
+}
+
+/* RESPONSIVE */
+@media (max-width: 992px) {
+    .form-group-horizontal {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .form-group-horizontal label {
+        text-align: left;
+        width: 100%;
+    }
+}

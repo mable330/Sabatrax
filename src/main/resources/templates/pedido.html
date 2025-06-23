@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Gestión de Pedidos</title>
+    <meta charset="UTF-8"/>
+     <link rel="stylesheet" th:href="@{/css/pedido.css}" />
+       <link rel="icon" th:href="@{/img/loguito.jpeg}" type="image/x-icon">
+</head>
+
+<body>
+<div class="button-group">
+       <a href="/admin" class="btn-principal">
+        🏠 Página Principal
+    </a>
+</div>
+<div class="container">
+    <h1 class="main-title">Gestión de Pedidos de Juegos de Sábanas</h1>
+       
+
+    <!-- Mensajes de éxito o error -->
+    <div th:if="${mensaje}" class="alert alert-success" th:text="${mensaje}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <!-- Formulario para registrar nuevo pedido -->
+    <div class="form-section">
+        <h2>Registrar Nuevo Pedido</h2>
+        <form th:action="@{/pedidos/registrar}" method="post">
+            <div class="form-row">
+        <div class="form-group compact">
+                 <label for="medidasSabanas">Medida de Sábanas:</label>
+                <select name="medidasSabanas" id="medidasSabanas" required>
+                    <option value="">Seleccionar medida</option>
+                    <option value="Sencillo">Sencillo</option>
+                    <option value="Doble">Doble</option>
+                    <option value="Queen">Queen</option>
+                    <option value="King">King</option>
+                </select>
+            </div>
+            <div class="form-group compact">
+          <label for="juegos">Cantidad de Juegos:</label>
+                <input type="number" name="juegos" id="juegos" min="1" required/>
+        </div>
+        
+        <div class="form-group compact">
+          <label for="fechaEnvio">Fecha de Entrega:</label>
+                <input type="date" name="fechaEnvio" id="fechaEnvio" required/>
+        </div>
+      </div>
+      
+      <button type="submit" class="btn-principal">Registrar Pedido</button>
+    </form>
+  </div>
+
+    <!-- Tabla de pedidos registrados -->
+    <h2 class="section-title">Pedidos Registrados</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Medida</th>
+                <th>Cantidad Solicitada</th>
+                <th>Fecha de Entrega</th>
+                <th>Juegos Completados</th>
+                <th>Progreso General</th>
+                <th>Progreso por Actividades</th>
+                <th>Estado</th>
+                <th>Días Restantes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="pedido : ${pedidos}" th:class="${pedido.fechaExpirada() ? 'expired-row' : ''}">
+                <td th:text="${pedido.id}"></td>
+                <td th:text="${pedido.medidasSabanas}"></td>
+                <td th:text="${pedido.juegos}"></td>
+                <td th:text="${#temporals.format(pedido.fechaEnvio, 'dd/MM/yyyy')}"></td>
+                <td th:text="${pedido.cantidadEntregada}"></td>
+                <td>
+                    <div class="progress-bar">
+    <div class="progress-fill" 
+         th:style="'width: ' + ${pedido.porcentajeTotal} + '%'"></div>
+</div>
+<small th:text="${#numbers.formatDecimal(pedido.porcentajeTotal, 0, 1)} + '%'"></small>
+
+                </td>
+                <td class="activity-progress">
+                    <!-- Corte -->
+                    <div class="activity-item">
+                        <div class="activity-label">
+                            <span style="color: #dc3545;">🔪 Corte</span>
+                            <span th:text="${#numbers.formatDecimal(pedido.progresoCorte, 1, 1)} + '%'">0.0%</span>
+                        </div>
+                        <div class="activity-bar">
+                            <div class="activity-fill-corte" 
+                                 th:style="'width: ' + ${pedido.progresoCorte * 100 / 30} + '%'"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Máquina -->
+                    <div class="activity-item">
+                        <div class="activity-label">
+                            <span style="color: #17a2b8;">⚙️ Máquina</span>
+                            <span th:text="${#numbers.formatDecimal(pedido.progresoMaquina, 1, 1)} + '%'">0.0%</span>
+                        </div>
+                        <div class="activity-bar">
+                            <div class="activity-fill-maquina" 
+                                 th:style="'width: ' + ${pedido.progresoMaquina * 100 / 40} + '%'"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Empaque -->
+                    <div class="activity-item">
+                        <div class="activity-label">
+                            <span style="color: #007bff;">📦 Empaque</span>
+                            <span th:text="${#numbers.formatDecimal(pedido.progresoEmpaque, 1, 1)} + '%'">0.0%</span>
+                        </div>
+                        <div class="activity-bar">
+                            <div class="activity-fill-empaque" 
+                                 th:style="'width: ' + ${pedido.progresoEmpaque * 100 / 30} + '%'"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Total -->
+                    <div class="total-progress">
+                        Total: <span th:text="${#numbers.formatDecimal(pedido.porcentajeTotal, 1, 1)} + '%'">0.0%</span>
+                    </div>
+                </td>
+                <td>
+                    <span th:if="${pedido.cantidadEntregada >= pedido.juegos}" 
+                          class="status-completed">✓ Completado</span>
+                    <span th:if="${pedido.cantidadEntregada < pedido.juegos and !pedido.fechaExpirada()}" 
+                          class="status-pending">⏳ Pendiente</span>
+                    <span th:if="${pedido.cantidadEntregada < pedido.juegos and pedido.fechaExpirada()}" 
+                          class="status-pending">❌ Vencido</span>
+                </td>
+                <td>
+                    <span th:if="${!pedido.fechaExpirada()}" 
+                          th:text="${T(java.time.temporal.ChronoUnit).DAYS.between(T(java.time.LocalDate).now(), pedido.fechaEnvio)}"></span>
+                    <span th:if="${pedido.fechaExpirada()}" style="color: red;">Vencido</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="margin-top: 30px; text-align: center;">
+        <a href="/admin" class="back-link">
+            ← Volver al Panel de Administración
+        </a>
+        <div style="margin-top: 20px;">
+        <a class="back-link"></a>
+        <a class="back-link" onclick="generatePDF()"></a>
+    </div>
+    </div>
+    <div class="chart-section">
+        <h2 style="margin-top: 40px;">📊 Estadística: Pedidos Completados Individuales</h2>
+        <canvas id="lineChart" width="800" height="400"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Variables globales para JS externo -->
+<script th:inline="javascript">
+    window.etiquetas = /*[[${etiquetas}]]*/ [];
+    window.cantidades = /*[[${cantidades}]]*/ [];
+</script>
+
+<!-- Tu JS separado -->
+<script th:src="@{/js/pedido.js}"></script>
+
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Enviar Correos Masivos</title>
+    <link rel="stylesheet" th:href="@{/css/correo.css}" />
+    <link rel="icon" th:href="@{/img/loguito.jpeg}" type="image/x-icon">
+   
+</head>
+<body>
+
+<div class="header-container">
+    <h1>📬 Enviar Correo Masivo por Departamento</h1>
+</div>
+
+<div class="content-container">
+    <div th:if="${mensajeExito}" class="mensaje exito" th:text="${mensajeExito}"></div>
+    <div th:if="${error}" class="mensaje error" th:text="${error}"></div>
+
+    <form th:action="@{/correo/masivo/enviar}" method="post" id="correoForm">
+        
+        <div class="departamento-section">
+            <label>🏢 Seleccionar Destinatarios:</label>
+            <div class="departamento-options">
+                <div class="radio-option" onclick="selectOption(this)">
+                    <input type="radio" name="tipoEnvio" value="todos" id="todos" checked>
+                    <label for="todos">👥 Todos los Empleados</label>
+                </div>
+                <div class="radio-option" onclick="selectOption(this)">
+                    <input type="radio" name="tipoEnvio" value="maquina" id="maquina">
+                    <label for="maquina">🔧 Departamento Máquina</label>
+                </div>
+                <div class="radio-option" onclick="selectOption(this)">
+                    <input type="radio" name="tipoEnvio" value="corte" id="corte">
+                    <label for="corte">✂️ Departamento Corte</label>
+                </div>
+                <div class="radio-option" onclick="selectOption(this)">
+                    <input type="radio" name="tipoEnvio" value="empaque" id="empaque">
+                    <label for="empaque">📦 Departamento Empaque</label>
+                </div>
+            </div>
+            <div class="info-departamento">
+                <span id="infoText">Se enviará el correo a todos los empleados registrados</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="asunto">📝 Asunto:</label>
+            <input type="text" name="asunto" id="asunto" required placeholder="Ingresa el asunto del correo" />
+        </div>
+
+        <div class="form-group">
+            <label for="mensaje">💬 Mensaje:</label>
+            <textarea name="mensaje" id="mensaje" rows="10" placeholder="Escribe aquí el contenido del mensaje que deseas enviar..." required></textarea>
+        </div>
+
+        <div class="button-group">
+            <button type="button" class="btn-secondary" onclick="window.location.href='/admin'">
+                   🏠 Página Principal
+            </button>
+            <button type="submit" class="btn-primary" id="enviarBtn">
+                🚀 Enviar Correo
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function selectOption(element) {
+        // Remover selección previa
+        document.querySelectorAll('.radio-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        
+        // Seleccionar la opción actual
+        element.classList.add('selected');
+        
+        // Marcar el radio button
+        const radio = element.querySelector('input[type="radio"]');
+        radio.checked = true;
+        
+        // Actualizar texto informativo y botón
+        updateInfoText(radio.value);
+    }
+    
+    function updateInfoText(tipo) {
+        const infoText = document.getElementById('infoText');
+        const enviarBtn = document.getElementById('enviarBtn');
+        
+        switch(tipo) {
+            case 'todos':
+                infoText.textContent = 'Se enviará el correo a todos los empleados registrados';
+                enviarBtn.innerHTML = '🚀 Enviar a Todos los Empleados';
+                break;
+            case 'maquina':
+                infoText.textContent = 'Se enviará el correo únicamente a empleados del departamento de Máquina';
+                enviarBtn.innerHTML = '🔧 Enviar a Departamento Máquina';
+                break;
+            case 'corte':
+                infoText.textContent = 'Se enviará el correo únicamente a empleados del departamento de Corte';
+                enviarBtn.innerHTML = '✂️ Enviar a Departamento Corte';
+                break;
+            case 'empaque':
+                infoText.textContent = 'Se enviará el correo únicamente a empleados del departamento de Empaque';
+                enviarBtn.innerHTML = '📦 Enviar a Departamento Empaque';
+                break;
+        }
+    }
+    
+    // Inicializar con la opción por defecto
+    document.addEventListener('DOMContentLoaded', function() {
+        const defaultOption = document.querySelector('.radio-option');
+        selectOption(defaultOption);
+    });
+</script>
+
+</body>
+</html>

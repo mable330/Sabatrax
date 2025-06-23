@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <link rel="stylesheet" th:href="@{/css/editar-p.css}" />
+       <link rel="icon" th:href="@{/img/loguito.jpeg}" type="image/x-icon">
+    <title>Editar Precio - Panel Administrador</title>
+ 
+</head>
+<body>
+    <div class="container">
+        <div class="form-header">
+            <h2>✏️ Editar Precio</h2>
+        </div>
+        
+        <form th:action="@{/precios/actualizar}" th:object="${precio}" method="post" id="editForm">
+            <input type="hidden" th:field="*{id}">
+            
+            <!-- Selector de Actividad -->
+            <div class="form-group">
+                <label for="actividad">🏷️ Actividad:</label>
+                <select id="actividad" th:field="*{actividad}" required onchange="mostrarCamposDinamicos()">
+                    <option value="">Seleccionar actividad</option>
+                    <option value="maquina">🏭 Máquina</option>
+                    <option value="corte">✂️ Corte</option>
+                    <option value="empaque">📦 Empaque</option>
+                </select>
+            </div>
+
+            <!-- Campos dinámicos para Máquina -->
+            <div id="campos-maquina" class="dynamic-fields">
+                <h3>🏭 Configuración de Máquina</h3>
+                   <div class="form-group">
+                    <label for="desc-maquina">Tipo de Sábanas:</label>
+                    <select id="desc-maquina" name="descripcion-temp">
+                        <option value="">Seleccionar tipo</option>
+                        <option value="Plana">🛏️ Plana</option>
+                        <option value="Caucho">🔄 Caucho</option>
+                        <option value="Fundas">🛡️ Fundas</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Campos dinámicos para Corte -->
+            <div id="campos-corte" class="dynamic-fields">
+                <h3>✂️ Configuración de Corte</h3>
+                <div class="form-group">
+                    <label for="desc-corte">Descripción del Corte:</label>
+                    <input type="text" id="desc-corte" name="descripcion-temp" 
+                           placeholder="Ej: Juego completo, Individual, Sábana sencilla...">
+                </div>
+            </div>
+            
+            <!-- Campos dinámicos para Empaque -->
+            <div id="campos-empaque" class="dynamic-fields">
+                <h3>📦 Configuración de Empaque</h3>
+                <div class="form-group">
+                    <label for="desc-empaque">Tipo de Empaque:</label>
+                    <select id="desc-empaque" name="descripcion-temp">
+                        <option value="">Seleccionar tipo</option>
+                        <option value="Bolsa">🛍️ Bolsa</option>
+                        <option value="Cartón">📦 Cartón</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Campo oculto para la descripción real -->
+            <input type="hidden" th:field="*{descripcion}" id="descripcion-real">
+
+            <!-- Campo de precio -->
+            <div class="form-group">
+                <label for="precio">💰 Precio (COP):</label>
+                <input type="number" th:field="*{precio}" id="precio" 
+                       placeholder="Ingrese el precio" min="1" max="50000" required>
+                <div class="price-display">
+                    💵 Precio actual: $<span th:text="${#numbers.formatInteger(precio.precio, 0, 'COMMA')}">0</span> COP
+                </div>
+                <div id="precio-error" class="validation-error" style="display: none;"></div>
+            </div>
+
+            <!-- Información del registro actual -->
+            <div class="alert alert-info">
+                <strong>📝 Editando:</strong> 
+                <span th:text="*{descripcion}">Descripción</span> 
+                (<span th:text="*{actividad}">actividad</span>)
+                <br>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">💾 Actualizar Precio</button>
+                <a th:href="@{/precios}" class="btn btn-secondary">❌ Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Variables globales
+        let formularioValido = false;
+        
+        // Función para mostrar/ocultar campos según actividad
+        function mostrarCamposDinamicos() {
+            const actividad = document.getElementById('actividad').value;
+            const camposMaquina = document.getElementById('campos-maquina');
+            const camposCorte = document.getElementById('campos-corte');
+            const camposEmpaque = document.getElementById('campos-empaque');
+            
+            // Ocultar todos los campos
+            camposMaquina.classList.remove('active');
+            camposCorte.classList.remove('active');
+            camposEmpaque.classList.remove('active');
+            
+            // Limpiar valores previos
+            document.getElementById('desc-maquina').value = '';
+            document.getElementById('desc-corte').value = '';
+            document.getElementById('desc-empaque').value = '';
+            
+            // Mostrar campos según actividad seleccionada
+            switch(actividad) {
+                case 'maquina':
+                    camposMaquina.classList.add('active');
+                    break;
+                case 'corte':
+                    camposCorte.classList.add('active');
+                    break;
+                case 'empaque':
+                    camposEmpaque.classList.add('active');
+                    break;
+            }
+            
+            // Actualizar el campo oculto de descripción
+            actualizarDescripcion();
+        }
+        
+        // Función para actualizar la descripción en el campo oculto
+        function actualizarDescripcion() {
+            const actividad = document.getElementById('actividad').value;
+            const descripcionReal = document.getElementById('descripcion-real');
+            let descripcion = '';
+            
+            switch(actividad) {
+                case 'maquina':
+                    descripcion = document.getElementById('desc-maquina').value;
+                    break;
+                case 'corte':
+                    descripcion = document.getElementById('desc-corte').value.trim();
+                    break;
+                case 'empaque':
+                    descripcion = document.getElementById('desc-empaque').value;
+                    break;
+            }
+            
+            descripcionReal.value = descripcion;
+            validarFormulario();
+        }
+        
+        // Función para establecer el valor inicial
+        function establecerValorInicial() {
+            const actividadActual = document.getElementById('actividad').value;
+            const descripcionActual = document.getElementById('descripcion-real').value;
+            
+            // Mostrar campos correctos
+            mostrarCamposDinamicos();
+            
+            // Establecer valor en el campo correspondiente
+            switch(actividadActual) {
+                case 'maquina':
+                    document.getElementById('desc-maquina').value = descripcionActual;
+                    break;
+                case 'corte':
+                    document.getElementById('desc-corte').value = descripcionActual;
+                    break;
+                case 'empaque':
+                    document.getElementById('desc-empaque').value = descripcionActual;
+                    break;
+            }
+            
+            // Actualizar descripción final
+            actualizarDescripcion();
+        }
+        
+        // Función de validación
+        function validarFormulario() {
+            const actividad = document.getElementById('actividad').value;
+            const descripcion = document.getElementById('descripcion-real').value;
+            const precio = parseInt(document.getElementById('precio').value);
+            const precioError = document.getElementById('precio-error');
+            
+            // Validar precio
+            if (precio && (precio <= 0 || precio > 50000)) {
+                precioError.textContent = precio <= 0 ? 
+                    '⚠️ El precio debe ser mayor a 0' : 
+                    '⚠️ El precio no puede exceder $50,000';
+                precioError.style.display = 'block';
+                formularioValido = false;
+            } else {
+                precioError.style.display = 'none';
+                formularioValido = true;
+            }
+            
+            return formularioValido && actividad && descripcion && precio;
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Establecer valores iniciales
+            establecerValorInicial();
+            
+            // Agregar listeners para actualizar descripción
+            document.getElementById('desc-maquina').addEventListener('change', actualizarDescripcion);
+            document.getElementById('desc-corte').addEventListener('input', actualizarDescripcion);
+            document.getElementById('desc-empaque').addEventListener('change', actualizarDescripcion);
+            
+            // Validación en tiempo real del precio
+            document.getElementById('precio').addEventListener('input', validarFormulario);
+            
+            // Validar formulario al enviar
+            document.getElementById('editForm').addEventListener('submit', function(e) {
+                const actividad = document.getElementById('actividad').value;
+                const descripcion = document.getElementById('descripcion-real').value;
+                const precio = document.getElementById('precio').value;
+                
+                // Validaciones
+                if (!actividad) {
+                    alert('⚠️ Debe seleccionar una actividad');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                if (!descripcion || descripcion.trim() === '') {
+                    alert('⚠️ Debe completar la descripción');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                if (!precio || precio <= 0) {
+                    alert('⚠️ El precio debe ser mayor a 0');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                if (precio > 50000) {
+                    alert('⚠️ El precio no puede exceder $50,000');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Confirmar actualización
+                const confirmar = confirm(
+                    `🔄 ¿Confirmar actualización?\n\n` +
+                    `Actividad: ${actividad}\n` +
+                    `Descripción: ${descripcion}\n` +
+                    `Nuevo precio: $${parseInt(precio).toLocaleString()} COP`
+                );
+                
+                if (!confirmar) {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Mostrar indicador de carga
+                const submitBtn = document.querySelector('.btn-primary');
+                submitBtn.innerHTML = '⏳ Actualizando...';
+                submitBtn.disabled = true;
+                
+                return true;
+            });
+        });
+        
+        // Función para formatear números
+        function formatearPrecio(precio) {
+            return new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0
+            }).format(precio);
+        }
+    </script>
+</body>
+</html>
