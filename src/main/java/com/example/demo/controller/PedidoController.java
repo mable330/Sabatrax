@@ -141,7 +141,7 @@ public class PedidoController {
             model.addAttribute("error", "❌ Error al registrar el pedido: " + e.getMessage());
         }
 
-        return mostrarPedidos(model);
+        return "redirect:/pedidos";
     }
 
     // ✅ Validar producción en máquina (trabaja por piezas)
