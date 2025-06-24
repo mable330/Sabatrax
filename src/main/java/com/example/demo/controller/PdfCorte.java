@@ -15,13 +15,12 @@ import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.data.general.DefaultPieDataset;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,6 +45,12 @@ public class PdfCorte {
 
         List<Corte> cortes = corteRepository.findAllById(ids);
 
+        if (cortes.isEmpty()) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND,
+                    "No se encontraron registros con los IDs proporcionados.");
+            return;
+        }
+
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition", "attachment; filename=\"reporte_actividades_corte.pdf\"");
 
@@ -53,13 +58,19 @@ public class PdfCorte {
         PdfWriter.getInstance(document, response.getOutputStream());
         document.open();
 
-        agregarTitulo(document, "Reporte de Actividades - Corte");
-        agregarTablaDatos(document, cortes);
-        agregarGraficaDiasTrabajo(document, cortes);
-        agregarGraficaMedidas(document, cortes);
-        agregarTotalCalculado(document, total);
-
-        document.close();
+        try {
+            agregarTitulo(document, "Reporte de Actividades - Corte");
+            agregarInformacionGeneral(document, cortes);
+            agregarTablaDatos(document, cortes);
+            agregarGraficaMedidas(document, cortes);
+            agregarGraficaProveedor(document, cortes);
+            agregarTotalCalculado(document, total);
+        } catch (Exception e) {
+            System.err.println("Error generando PDF: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            document.close();
+        }
     }
 
     private void agregarTitulo(Document document, String titulo) throws DocumentException {
@@ -68,6 +79,47 @@ public class PdfCorte {
         paragraph.setAlignment(Element.ALIGN_CENTER);
         paragraph.setSpacingAfter(20);
         document.add(paragraph);
+
+        // Agregar fecha de generación
+        Font fechaFont = FontFactory.getFont(FontFactory.HELVETICA, 10, BaseColor.GRAY);
+        Paragraph fechaParagraph = new Paragraph("Generado el: " + new Date().toString(), fechaFont);
+        fechaParagraph.setAlignment(Element.ALIGN_CENTER);
+        fechaParagraph.setSpacingAfter(20);
+        document.add(fechaParagraph);
+    }
+
+    private void agregarInformacionGeneral(Document document, List<Corte> cortes) throws DocumentException {
+        Font font = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.BLACK);
+
+        // Calcular totales
+        int totalJuegos = cortes.stream()
+                .mapToInt(c -> {
+                    try {
+                        return Integer.parseInt(c.getJuegos());
+                    } catch (NumberFormatException e) {
+                        return 0;
+                    }
+                })
+                .sum();
+
+        Set<String> medidasUnicas = cortes.stream()
+                .map(Corte::getMedidas)
+                .collect(Collectors.toSet());
+
+        String empleado = cortes.isEmpty() ? "N/A" : cortes.get(0).getUsuario().getNombre();
+
+        Paragraph info = new Paragraph();
+        info.add(new Chunk("Resumen del Reporte\n", font));
+        info.add(new Chunk("Empleado: " + empleado + "\n", FontFactory.getFont(FontFactory.HELVETICA, 10)));
+        info.add(new Chunk("Total de registros: " + cortes.size() + "\n",
+                FontFactory.getFont(FontFactory.HELVETICA, 10)));
+        info.add(new Chunk("Total de juegos cortados: " + totalJuegos + "\n",
+                FontFactory.getFont(FontFactory.HELVETICA, 10)));
+        info.add(new Chunk("Medidas trabajadas: " + medidasUnicas.size() + " tipos diferentes\n",
+                FontFactory.getFont(FontFactory.HELVETICA, 10)));
+        info.setSpacingAfter(20);
+
+        document.add(info);
     }
 
     private void agregarTablaDatos(Document document, List<Corte> cortes) throws DocumentException {
@@ -76,64 +128,98 @@ public class PdfCorte {
         tabla.setSpacingBefore(15);
         tabla.setSpacingAfter(20);
 
+        // Establecer anchos de columnas
+        float[] columnWidths = { 12f, 18f, 10f, 15f, 20f, 15f, 10f };
+        tabla.setWidths(columnWidths);
+
         String[] encabezados = { "Fecha", "Medidas", "Juegos", "Proveedor", "Novedades", "Evidencia", "Empleado" };
+        Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.WHITE);
+
         for (String encabezado : encabezados) {
-            PdfPCell celda = new PdfPCell(new Phrase(encabezado));
-            celda.setBackgroundColor(new BaseColor(200, 200, 200));
+            PdfPCell celda = new PdfPCell(new Phrase(encabezado, headerFont));
+            celda.setBackgroundColor(new BaseColor(52, 73, 94)); // Color azul oscuro
             celda.setHorizontalAlignment(Element.ALIGN_CENTER);
+            celda.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            celda.setPadding(8);
             tabla.addCell(celda);
         }
 
-        SimpleDateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
+        // ✅ CORRECCIÓN: Usar DateTimeFormatter para LocalDate
+        DateTimeFormatter formatoFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        Font cellFont = FontFactory.getFont(FontFactory.HELVETICA, 9);
 
         for (Corte corte : cortes) {
-            tabla.addCell(new Phrase(formatoFecha.format(corte.getFecha())));
-            tabla.addCell(new Phrase(corte.getMedidas()));
-            tabla.addCell(new Phrase(String.valueOf(corte.getJuegos())));
-            tabla.addCell(new Phrase(corte.getProveedor()));
-            tabla.addCell(new Phrase(corte.getNovedades()));
+            // Fecha - CORREGIDO para LocalDate
+            String fechaStr = (corte.getFecha() != null) ? corte.getFecha().format(formatoFecha) : "Sin fecha";
+            tabla.addCell(new Phrase(fechaStr, cellFont));
 
-            // Imagen
-            if (corte.getImagen() != null) {
+            // Medidas
+            tabla.addCell(new Phrase(corte.getMedidas() != null ? corte.getMedidas() : "N/A", cellFont));
+
+            // Juegos
+            tabla.addCell(new Phrase(corte.getJuegos() != null ? corte.getJuegos() : "0", cellFont));
+
+            // Proveedor
+            tabla.addCell(new Phrase(corte.getProveedor() != null ? corte.getProveedor() : "N/A", cellFont));
+
+            // Novedades
+            String novedades = corte.getNovedades() != null ? corte.getNovedades() : "Sin novedades";
+            if (novedades.length() > 50) {
+                novedades = novedades.substring(0, 47) + "...";
+            }
+            tabla.addCell(new Phrase(novedades, cellFont));
+
+            // Imagen/Evidencia
+            if (corte.getImagen() != null && corte.getImagen().length > 0) {
                 try {
                     Image imagen = Image.getInstance(corte.getImagen());
-                    imagen.scaleToFit(50, 50);
+                    imagen.scaleToFit(40, 40);
                     PdfPCell celdaImagen = new PdfPCell(imagen, true);
-                    celdaImagen.setFixedHeight(55);
+                    celdaImagen.setFixedHeight(45);
                     celdaImagen.setHorizontalAlignment(Element.ALIGN_CENTER);
+                    celdaImagen.setVerticalAlignment(Element.ALIGN_MIDDLE);
                     tabla.addCell(celdaImagen);
                 } catch (Exception e) {
-                    tabla.addCell(new Phrase("Imagen no disponible"));
+                    System.err.println("Error procesando imagen: " + e.getMessage());
+                    tabla.addCell(new Phrase("Error imagen", cellFont));
                 }
             } else {
-                tabla.addCell(new Phrase("Sin imagen"));
+                tabla.addCell(new Phrase("Sin imagen", cellFont));
             }
 
-            tabla.addCell(new Phrase(corte.getUsuario().getNombre()));
+            // Empleado
+            String nombreEmpleado = (corte.getUsuario() != null && corte.getUsuario().getNombre() != null)
+                    ? corte.getUsuario().getNombre()
+                    : "N/A";
+            tabla.addCell(new Phrase(nombreEmpleado, cellFont));
         }
 
         document.add(tabla);
     }
 
-    private void agregarGraficaDiasTrabajo(Document document, List<Corte> cortes)
+    private void agregarGraficaMedidas(Document document, List<Corte> cortes)
             throws DocumentException, IOException {
 
         Map<String, Integer> trabajoPorMedida = cortes.stream()
                 .collect(Collectors.groupingBy(
-                        Corte::getMedidas,
+                        c -> c.getMedidas() != null ? c.getMedidas() : "Sin medida",
                         Collectors.summingInt(c -> {
                             try {
-                                return Integer.parseInt(c.getJuegos()); // 👈 Convertimos String a int
+                                return Integer.parseInt(c.getJuegos());
                             } catch (NumberFormatException e) {
-                                return 0; // 👈 Si hay error de formato, sumamos como 0
+                                return 0;
                             }
                         })));
+
+        if (trabajoPorMedida.isEmpty()) {
+            return; // No hay datos para graficar
+        }
 
         DefaultPieDataset dataset = new DefaultPieDataset();
         trabajoPorMedida.forEach(dataset::setValue);
 
         JFreeChart chart = ChartFactory.createPieChart(
-                "Días con mayor producción (Corte)",
+                "Distribución por Medidas de Sábanas",
                 dataset,
                 true,
                 true,
@@ -143,28 +229,39 @@ public class PdfCorte {
         plot.setLabelGenerator(new StandardPieSectionLabelGenerator("{0}: {1} juegos ({2})"));
         plot.setSimpleLabels(true);
 
+        // Colores personalizados
+        plot.setSectionPaint("Sencilla", new java.awt.Color(52, 152, 219));
+        plot.setSectionPaint("Semi", new java.awt.Color(46, 204, 113));
+        plot.setSectionPaint("Doble", new java.awt.Color(155, 89, 182));
+        plot.setSectionPaint("Queen", new java.awt.Color(241, 196, 15));
+        plot.setSectionPaint("King", new java.awt.Color(231, 76, 60));
+
         agregarGraficaAlDocumento(document, chart, 500, 300);
     }
 
-    private void agregarGraficaMedidas(Document document, List<Corte> cortes)
+    private void agregarGraficaProveedor(Document document, List<Corte> cortes)
             throws DocumentException, IOException {
 
-        Map<String, Integer> trabajoPorMedida = cortes.stream()
+        Map<String, Integer> trabajoPorProveedor = cortes.stream()
                 .collect(Collectors.groupingBy(
-                        Corte::getMedidas,
+                        c -> c.getProveedor() != null ? c.getProveedor() : "Sin proveedor",
                         Collectors.summingInt(c -> {
                             try {
-                                return Integer.parseInt(c.getJuegos()); // 👈 Convertimos String a int
+                                return Integer.parseInt(c.getJuegos());
                             } catch (NumberFormatException e) {
-                                return 0; // 👈 Si hay error de formato, sumamos como 0
+                                return 0;
                             }
                         })));
 
+        if (trabajoPorProveedor.isEmpty() || trabajoPorProveedor.size() <= 1) {
+            return; // No hay suficientes datos para una gráfica útil
+        }
+
         DefaultPieDataset dataset = new DefaultPieDataset();
-        trabajoPorMedida.forEach(dataset::setValue);
+        trabajoPorProveedor.forEach(dataset::setValue);
 
         JFreeChart chart = ChartFactory.createPieChart(
-                "Distribución por Medidas de Sábanas (Corte)",
+                "Distribución por Proveedor",
                 dataset,
                 true,
                 true,
@@ -180,21 +277,53 @@ public class PdfCorte {
     private void agregarGraficaAlDocumento(Document document, JFreeChart chart, int ancho, int alto)
             throws IOException, DocumentException {
 
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        org.jfree.chart.ChartUtils.writeChartAsPNG(outputStream, chart, ancho, alto);
+        try {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            org.jfree.chart.ChartUtils.writeChartAsPNG(outputStream, chart, ancho, alto);
 
-        Image imagenGrafica = Image.getInstance(outputStream.toByteArray());
-        imagenGrafica.setAlignment(Image.MIDDLE);
-        imagenGrafica.setSpacingBefore(15);
-        imagenGrafica.setSpacingAfter(15);
-        document.add(imagenGrafica);
+            Image imagenGrafica = Image.getInstance(outputStream.toByteArray());
+            imagenGrafica.setAlignment(Image.MIDDLE);
+            imagenGrafica.setSpacingBefore(15);
+            imagenGrafica.setSpacingAfter(15);
+
+            // Escalar la imagen si es necesario
+            if (imagenGrafica.getWidth() > 500) {
+                imagenGrafica.scaleToFit(500, 300);
+            }
+
+            document.add(imagenGrafica);
+        } catch (Exception e) {
+            System.err.println("Error agregando gráfica: " + e.getMessage());
+            // Agregar un mensaje en lugar de la gráfica si hay error
+            Font font = FontFactory.getFont(FontFactory.HELVETICA, 10, BaseColor.RED);
+            Paragraph errorMsg = new Paragraph("Error generando gráfica: " + e.getMessage(), font);
+            errorMsg.setAlignment(Element.ALIGN_CENTER);
+            document.add(errorMsg);
+        }
     }
 
     private void agregarTotalCalculado(Document document, int total) throws DocumentException {
-        Font fontTotal = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, BaseColor.BLUE);
-        Paragraph parrafoTotal = new Paragraph("Total calculado: $" + String.format("%,d", total), fontTotal);
+        // Crear una línea separadora
+        Paragraph linea = new Paragraph("_".repeat(80));
+        linea.setAlignment(Element.ALIGN_CENTER);
+        linea.setSpacingBefore(20);
+        linea.setSpacingAfter(10);
+        document.add(linea);
+
+        // Total calculado
+        Font fontTotal = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, BaseColor.BLUE);
+        Paragraph parrafoTotal = new Paragraph("TOTAL CALCULADO: $" + String.format("%,d", total), fontTotal);
         parrafoTotal.setAlignment(Element.ALIGN_RIGHT);
-        parrafoTotal.setSpacingBefore(20);
+        parrafoTotal.setSpacingBefore(10);
+        parrafoTotal.setSpacingAfter(20);
         document.add(parrafoTotal);
+
+        // Información adicional
+        Font fontInfo = FontFactory.getFont(FontFactory.HELVETICA, 8, BaseColor.GRAY);
+        Paragraph infoFinal = new Paragraph(
+                "* Este cálculo se basa en los registros seleccionados y los precios configurados en el sistema.",
+                fontInfo);
+        infoFinal.setAlignment(Element.ALIGN_RIGHT);
+        document.add(infoFinal);
     }
 }
