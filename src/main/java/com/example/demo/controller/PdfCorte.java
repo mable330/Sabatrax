@@ -34,36 +34,32 @@ public class PdfCorte {
     private CorteRepository corteRepository;
 
     @PostMapping("/generar")
-    public ResponseEntity<byte[]> generarPdf(
+    public void generarPdf(
             @RequestParam("selectedRows") List<String> ids,
-            @RequestParam("total") int total) {
+            @RequestParam("total") int total,
+            HttpServletResponse response) throws IOException, DocumentException {
 
-        try {
-            List<Corte> cortes = corteRepository.findAllById(ids);
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            Document document = new Document();
-            PdfWriter.getInstance(document, baos);
-            document.open();
-
-            agregarTitulo(document, "Reporte de Actividades - Corte");
-            agregarTablaDatos(document, cortes);
-            agregarGraficaDiasTrabajo(document, cortes);
-            agregarGraficaMedidas(document, cortes);
-            agregarTotalCalculado(document, total);
-
-            document.close();
-
-            byte[] pdfBytes = baos.toByteArray();
-
-            return ResponseEntity.ok()
-                    .header("Content-Disposition", "attachment; filename=reporte_actividades_corte.pdf")
-                    .header("Content-Type", "application/pdf")
-                    .body(pdfBytes);
-
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(null);
+        if (ids == null || ids.isEmpty()) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No se seleccionaron registros para el PDF.");
+            return;
         }
+
+        List<Corte> cortes = corteRepository.findAllById(ids);
+
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=\"reporte_actividades_corte.pdf\"");
+
+        Document document = new Document();
+        PdfWriter.getInstance(document, response.getOutputStream());
+        document.open();
+
+        agregarTitulo(document, "Reporte de Actividades - Corte");
+        agregarTablaDatos(document, cortes);
+        agregarGraficaDiasTrabajo(document, cortes);
+        agregarGraficaMedidas(document, cortes);
+        agregarTotalCalculado(document, total);
+
+        document.close();
     }
 
     private void agregarTitulo(Document document, String titulo) throws DocumentException {
