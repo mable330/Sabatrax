@@ -199,6 +199,7 @@ public class CorteController {
         model.addAttribute("totalRegistros", todos.size());
         model.addAttribute("registrosSeleccionados", seleccionados.size());
 
+        // 🔥 FALTABA ESTO: Pasar los ids al formulario del PDF
         model.addAttribute("idsSeleccionados", ids);
 
         return "corte";
