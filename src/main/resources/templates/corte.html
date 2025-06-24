@@ -74,7 +74,7 @@
      <div th:if="${total != null}" class="resultado">
         <p>Su Salario es de: $<span th:text="${#numbers.formatDecimal(total, 0, 'POINT', 0, 'COMMA')}"></span></p>
 <form action="/pdfCorte/generar" method="post">
-            <input type="hidden" th:each="id : ${param.selectedRows}" name="selectedRows" th:value="${id}">
+            <input type="hidden" th:each="id : ${idsSeleccionados}" name="selectedRows" th:value="${id}">
             <input type="hidden" name="total" th:value="${total}">
             <input type="submit" value="Generar PDF" class="btn-pdf">
         </form>

@@ -199,6 +199,8 @@ public class CorteController {
         model.addAttribute("totalRegistros", todos.size());
         model.addAttribute("registrosSeleccionados", seleccionados.size());
 
+        model.addAttribute("idsSeleccionados", ids);
+
         return "corte";
     }
 
