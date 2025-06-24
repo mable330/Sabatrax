@@ -112,14 +112,13 @@ public class PedidoController {
                 return mostrarPedidos(model);
             }
 
-            // Verificar si ya existe un pedido con la misma medida y fecha
-            Optional<Pedido> pedidoExistente = pedidoRepository.findByMedidasSabanasAndFechaEnvio(
-                    medidasSabanas, fechaEntrega);
+            // Verificar si ya existe un pedido INCOMPLETO para la misma medida
+            List<Pedido> pedidosIncompletos = pedidoRepository.findPedidosIncompletosPorMedida(medidasSabanas);
 
-            if (pedidoExistente.isPresent()) {
+            if (!pedidosIncompletos.isEmpty()) {
                 model.addAttribute("error",
-                        "❌ Ya existe un pedido para la medida '" + medidasSabanas +
-                                "' con fecha de entrega " + fechaEntrega);
+                        "❌ No puedes registrar un nuevo pedido para la medida '" + medidasSabanas +
+                                "' hasta que el pedido anterior esté COMPLETADO.");
                 return mostrarPedidos(model);
             }
 
@@ -128,7 +127,6 @@ public class PedidoController {
             pedido.setMedidasSabanas(medidasSabanas);
             pedido.setJuegos(juegos);
             pedido.setFechaEnvio(fechaEntrega);
-
             pedido.setCantidadEntregada(0);
 
             pedidoRepository.save(pedido);
