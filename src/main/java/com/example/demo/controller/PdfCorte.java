@@ -15,6 +15,7 @@ import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.data.general.DefaultPieDataset;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,30 +34,36 @@ public class PdfCorte {
     private CorteRepository corteRepository;
 
     @PostMapping("/generar")
-    public void generarPdf(@RequestParam("selectedRows") List<String> ids,
-            @RequestParam("total") int total,
-            HttpServletResponse response) throws IOException, DocumentException {
+    public ResponseEntity<byte[]> generarPdf(
+            @RequestParam("selectedRows") List<String> ids,
+            @RequestParam("total") int total) {
 
-        List<Corte> cortes = corteRepository.findAllById(ids);
+        try {
+            List<Corte> cortes = corteRepository.findAllById(ids);
 
-        response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "attachment; filename=\"reporte_actividades_corte.pdf\"");
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            Document document = new Document();
+            PdfWriter.getInstance(document, baos);
+            document.open();
 
-        Document document = new Document();
-        PdfWriter.getInstance(document, response.getOutputStream());
-        document.open();
+            agregarTitulo(document, "Reporte de Actividades - Corte");
+            agregarTablaDatos(document, cortes);
+            agregarGraficaDiasTrabajo(document, cortes);
+            agregarGraficaMedidas(document, cortes);
+            agregarTotalCalculado(document, total);
 
-        agregarTitulo(document, "Reporte de Actividades - Corte");
+            document.close();
 
-        agregarTablaDatos(document, cortes);
+            byte[] pdfBytes = baos.toByteArray();
 
-        agregarGraficaDiasTrabajo(document, cortes);
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=reporte_actividades_corte.pdf")
+                    .header("Content-Type", "application/pdf")
+                    .body(pdfBytes);
 
-        agregarGraficaMedidas(document, cortes);
-
-        agregarTotalCalculado(document, total);
-
-        document.close();
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+        }
     }
 
     private void agregarTitulo(Document document, String titulo) throws DocumentException {
