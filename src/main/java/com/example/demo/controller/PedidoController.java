@@ -8,12 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.time.temporal.ChronoUnit;
-import com.example.demo.repository.CorteRepository; // Si ya lo tienes
+import com.example.demo.repository.CorteRepository;
 import com.example.demo.repository.MaquinaRepository;
 import com.example.demo.repository.PedidoRepository;
 
@@ -29,8 +30,6 @@ public class PedidoController {
 
     @Autowired
     private CorteRepository corteRepository;
-
-    // 🔥 Asegúrate de tener este repositorio
 
     // ✅ Mostrar pedidos
     @GetMapping
@@ -88,55 +87,78 @@ public class PedidoController {
         return "pedido";
     }
 
-    // ✅ Registrar nuevo pedido
+    // ✅ Registrar nuevo pedido - CORREGIDO
     @PostMapping("/registrar")
     public String registrarPedido(
             @RequestParam String medidasSabanas,
             @RequestParam int juegos,
             @RequestParam String fechaEnvio,
-            Model model) {
+            RedirectAttributes redirectAttributes) {
 
         try {
+            // Validar que los parámetros no estén vacíos
+            if (medidasSabanas == null || medidasSabanas.trim().isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "❌ La medida de sábanas es obligatoria");
+                return "redirect:/pedidos";
+            }
+
             // Validar y parsear fecha
-            LocalDate fechaEntrega = LocalDate.parse(fechaEnvio);
+            LocalDate fechaEntrega;
+            try {
+                fechaEntrega = LocalDate.parse(fechaEnvio);
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("error", "❌ Formato de fecha inválido. Use YYYY-MM-DD");
+                return "redirect:/pedidos";
+            }
 
             // Validar que la fecha no sea pasada
             if (fechaEntrega.isBefore(LocalDate.now())) {
-                model.addAttribute("error", "❌ La fecha de entrega no puede ser anterior a hoy");
-                return mostrarPedidos(model);
+                redirectAttributes.addFlashAttribute("error", "❌ La fecha de entrega no puede ser anterior a hoy");
+                return "redirect:/pedidos";
             }
 
             // Validar cantidad mínima
             if (juegos <= 0) {
-                model.addAttribute("error", "❌ La cantidad de juegos debe ser mayor a 0");
-                return mostrarPedidos(model);
+                redirectAttributes.addFlashAttribute("error", "❌ La cantidad de juegos debe ser mayor a 0");
+                return "redirect:/pedidos";
             }
 
             // Verificar si ya existe un pedido INCOMPLETO para la misma medida
-            List<Pedido> pedidosIncompletos = pedidoRepository.findPedidosIncompletosPorMedida(medidasSabanas);
+            // 🔥 CORREGIDO: Mejorar la lógica de validación
+            List<Pedido> pedidosIncompletos = pedidoRepository
+                    .findByMedidasSabanasAndCantidadEntregadaLessThanJuegos(medidasSabanas);
 
             if (!pedidosIncompletos.isEmpty()) {
-                model.addAttribute("error",
-                        "❌ No puedes registrar un nuevo pedido para la medida '" + medidasSabanas +
-                                "' hasta que el pedido anterior esté COMPLETADO.");
-                return mostrarPedidos(model);
+                // Mostrar información detallada del pedido incompleto
+                Pedido pedidoIncompleto = pedidosIncompletos.get(0);
+                int faltantes = pedidoIncompleto.getJuegos() - pedidoIncompleto.getCantidadEntregada();
+
+                redirectAttributes.addFlashAttribute("error",
+                        String.format("❌ Existe un pedido incompleto para '%s'. " +
+                                "Pedido ID: %d - Faltan %d juegos de %d total. " +
+                                "Complete este pedido antes de crear uno nuevo.",
+                                medidasSabanas, pedidoIncompleto.getId(), faltantes, pedidoIncompleto.getJuegos()));
+                return "redirect:/pedidos";
             }
 
             // Crear y guardar el pedido
             Pedido pedido = new Pedido();
-            pedido.setMedidasSabanas(medidasSabanas);
+            pedido.setMedidasSabanas(medidasSabanas.trim());
             pedido.setJuegos(juegos);
             pedido.setFechaEnvio(fechaEntrega);
             pedido.setCantidadEntregada(0);
 
-            pedidoRepository.save(pedido);
+            Pedido pedidoGuardado = pedidoRepository.save(pedido);
 
-            model.addAttribute("mensaje",
-                    "✅ Pedido registrado exitosamente. ID: " + pedido.getId() +
-                            " | Juegos: " + juegos + " | Medida: " + medidasSabanas);
+            redirectAttributes.addFlashAttribute("mensaje",
+                    String.format("✅ Pedido registrado exitosamente. " +
+                            "ID: %d | Juegos: %d | Medida: %s | Fecha entrega: %s",
+                            pedidoGuardado.getId(), juegos, medidasSabanas, fechaEntrega));
 
         } catch (Exception e) {
-            model.addAttribute("error", "❌ Error al registrar el pedido: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error",
+                    "❌ Error al registrar el pedido: " + e.getMessage());
+            e.printStackTrace(); // Para debugging
         }
 
         return "redirect:/pedidos";
@@ -260,7 +282,6 @@ public class PedidoController {
         }
     }
 
-    // ✅ Validar producción en corte (trabaja por juegos completos)
     // ✅ Validar y registrar producción en corte
     @PostMapping("/validar-produccion-corte")
     @ResponseBody
@@ -323,14 +344,14 @@ public class PedidoController {
     public String actualizarEntrega(
             @RequestParam Long pedidoId,
             @RequestParam int cantidadNueva,
-            Model model) {
+            RedirectAttributes redirectAttributes) {
 
         try {
             Optional<Pedido> pedidoOpt = pedidoRepository.findById(pedidoId);
 
             if (pedidoOpt.isEmpty()) {
-                model.addAttribute("error", "❌ Pedido no encontrado");
-                return mostrarPedidos(model);
+                redirectAttributes.addFlashAttribute("error", "❌ Pedido no encontrado");
+                return "redirect:/pedidos";
             }
 
             Pedido pedido = pedidoOpt.get();
@@ -338,9 +359,9 @@ public class PedidoController {
             // Validar que no exceda el total solicitado
             if (pedido.getCantidadEntregada() + cantidadNueva > pedido.getJuegos()) {
                 int maxPermitido = pedido.getJuegos() - pedido.getCantidadEntregada();
-                model.addAttribute("error",
+                redirectAttributes.addFlashAttribute("error",
                         "❌ No puedes entregar más de lo solicitado. Máximo: " + maxPermitido + " juegos");
-                return mostrarPedidos(model);
+                return "redirect:/pedidos";
             }
 
             // Actualizar cantidad entregada
@@ -349,16 +370,16 @@ public class PedidoController {
 
             String estadoPedido = pedido.getCantidadEntregada() >= pedido.getJuegos() ? "COMPLETADO" : "PENDIENTE";
 
-            model.addAttribute("mensaje",
+            redirectAttributes.addFlashAttribute("mensaje",
                     "✅ Entrega actualizada. Pedido ID: " + pedidoId +
                             " | Entregados: " + pedido.getCantidadEntregada() +
                             "/" + pedido.getJuegos() + " | Estado: " + estadoPedido);
 
         } catch (Exception e) {
-            model.addAttribute("error", "❌ Error al actualizar entrega: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "❌ Error al actualizar entrega: " + e.getMessage());
         }
 
-        return mostrarPedidos(model);
+        return "redirect:/pedidos";
     }
 
     // ✅ Obtener información de un pedido específico

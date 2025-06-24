@@ -23,6 +23,9 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
                         LocalDate fechaEnvio,
                         int cantidadEntregada);
 
+        @Query("SELECT p FROM Pedido p WHERE p.medidasSabanas = :medidas AND p.cantidadEntregada < p.juegos")
+        List<Pedido> findByMedidasSabanasAndCantidadEntregadaLessThanJuegos(@Param("medidas") String medidas);
+
         /**
          * Busca pedidos por medidas con fecha de envío posterior a la fecha dada
          * (pedidos activos)
