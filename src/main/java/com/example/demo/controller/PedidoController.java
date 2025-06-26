@@ -3,17 +3,19 @@ package com.example.demo.controller;
 import com.example.demo.model.Pedido;
 import com.example.demo.repository.MaquinaRepository;
 import com.example.demo.repository.PedidoRepository;
-import com.example.demo.repository.CorteRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.time.temporal.ChronoUnit;
+import com.example.demo.repository.CorteRepository; // Si ya lo tienes
+import com.example.demo.repository.MaquinaRepository;
+import com.example.demo.repository.PedidoRepository;
 
 @Controller
 @RequestMapping("/pedidos")
@@ -28,28 +30,37 @@ public class PedidoController {
     @Autowired
     private CorteRepository corteRepository;
 
+    // 🔥 Asegúrate de tener este repositorio
+
     // ✅ Mostrar pedidos
     @GetMapping
     public String mostrarPedidos(Model model) {
         List<Pedido> pedidos = pedidoRepository.findAll();
 
+        // 💡 Recorremos para calcular porcentaje por actividad al vuelo
         for (Pedido pedido : pedidos) {
             String medida = pedido.getMedidasSabanas();
+            LocalDate fechaInicio = pedido.getFechaEnvio().minusDays(60);
 
-            int juegosCorte = corteRepository.contarJuegosCortadosPorPedido(pedido.getId());
+            // 🛠️ Obtener cantidad de juegos cortados (desde la tabla de corte)
+            int juegosCorte = corteRepository.contarJuegosCortadosPorMedida(medida, fechaInicio);
 
-            int planas = maquinaRepository.contarPorPedidoYTipo(pedido.getId(), "Plana");
-            int cauchos = maquinaRepository.contarPorPedidoYTipo(pedido.getId(), "Caucho");
-            int fundas = maquinaRepository.contarPorPedidoYTipo(pedido.getId(), "Fundas");
+            // 🛠️ Obtener cantidad de piezas de máquina (plana + caucho + fundas)
+            int planas = maquinaRepository.contarPorMedidaYTipoDesde(medida, "Plana", fechaInicio);
+            int cauchos = maquinaRepository.contarPorMedidaYTipoDesde(medida, "Caucho", fechaInicio);
+            int fundas = maquinaRepository.contarPorMedidaYTipoDesde(medida, "Fundas", fechaInicio);
 
+            // 💡 Calcular juegos completos en máquina
             int juegosMaquina = Math.min(planas, Math.min(cauchos, fundas / 2));
 
+            // 📊 Progreso por actividad
             double progresoCorte = (double) juegosCorte / pedido.getJuegos() * 30;
             double progresoMaquina = (double) juegosMaquina / pedido.getJuegos() * 40;
             double progresoEmpaque = (double) pedido.getCantidadEntregada() / pedido.getJuegos() * 30;
 
             double porcentajeTotal = progresoCorte + progresoMaquina + progresoEmpaque;
 
+            // 👇 Guardamos en atributos temporales para Thymeleaf (NO en la base de datos)
             pedido.setProgresoCorte(progresoCorte);
             pedido.setProgresoMaquina(progresoMaquina);
             pedido.setProgresoEmpaque(progresoEmpaque);
@@ -58,6 +69,7 @@ public class PedidoController {
 
         model.addAttribute("pedidos", pedidos);
 
+        // 📈 Preparar datos para la gráfica
         List<Pedido> pedidosCompletados = pedidos.stream()
                 .filter(p -> p.getCantidadEntregada() >= p.getJuegos())
                 .sorted((p1, p2) -> p1.getId().compareTo(p2.getId()))
@@ -83,67 +95,56 @@ public class PedidoController {
             @RequestParam String medidasSabanas,
             @RequestParam int juegos,
             @RequestParam String fechaEnvio,
-            RedirectAttributes redirectAttributes) {
+            Model model) {
 
         try {
-            if (medidasSabanas == null || medidasSabanas.trim().isEmpty()) {
-                redirectAttributes.addFlashAttribute("error", "❌ La medida de sábanas es obligatoria");
-                return "redirect:/pedidos";
-            }
+            // Validar y parsear fecha
+            LocalDate fechaEntrega = LocalDate.parse(fechaEnvio);
 
-            LocalDate fechaEntrega;
-            try {
-                fechaEntrega = LocalDate.parse(fechaEnvio);
-            } catch (Exception e) {
-                redirectAttributes.addFlashAttribute("error", "❌ Formato de fecha inválido. Use YYYY-MM-DD");
-                return "redirect:/pedidos";
-            }
-
+            // Validar que la fecha no sea pasada
             if (fechaEntrega.isBefore(LocalDate.now())) {
-                redirectAttributes.addFlashAttribute("error", "❌ La fecha de entrega no puede ser anterior a hoy");
-                return "redirect:/pedidos";
+                model.addAttribute("error", "❌ La fecha de entrega no puede ser anterior a hoy");
+                return mostrarPedidos(model);
             }
 
+            // Validar cantidad mínima
             if (juegos <= 0) {
-                redirectAttributes.addFlashAttribute("error", "❌ La cantidad de juegos debe ser mayor a 0");
-                return "redirect:/pedidos";
+                model.addAttribute("error", "❌ La cantidad de juegos debe ser mayor a 0");
+                return mostrarPedidos(model);
             }
 
-            List<Pedido> pedidosIncompletos = pedidoRepository.findPedidosIncompletosPorMedida(medidasSabanas);
+            // Verificar si ya existe un pedido con la misma medida y fecha
+            Optional<Pedido> pedidoExistente = pedidoRepository.findByMedidasSabanasAndFechaEnvio(
+                    medidasSabanas, fechaEntrega);
 
-            if (!pedidosIncompletos.isEmpty()) {
-                Pedido pedidoIncompleto = pedidosIncompletos.get(0);
-                int faltantes = pedidoIncompleto.getJuegos() - pedidoIncompleto.getCantidadEntregada();
-
-                redirectAttributes.addFlashAttribute("error",
-                        String.format(
-                                "❌ Existe un pedido incompleto para '%s'. Pedido ID: %d - Faltan %d juegos de %d total. Complete este pedido antes de crear uno nuevo.",
-                                medidasSabanas, pedidoIncompleto.getId(), faltantes, pedidoIncompleto.getJuegos()));
-                return "redirect:/pedidos";
+            if (pedidoExistente.isPresent()) {
+                model.addAttribute("error",
+                        "❌ Ya existe un pedido para la medida '" + medidasSabanas +
+                                "' con fecha de entrega " + fechaEntrega);
+                return mostrarPedidos(model);
             }
 
+            // Crear y guardar el pedido
             Pedido pedido = new Pedido();
-            pedido.setMedidasSabanas(medidasSabanas.trim());
+            pedido.setMedidasSabanas(medidasSabanas);
             pedido.setJuegos(juegos);
             pedido.setFechaEnvio(fechaEntrega);
             pedido.setCantidadEntregada(0);
 
-            Pedido pedidoGuardado = pedidoRepository.save(pedido);
+            pedidoRepository.save(pedido);
 
-            redirectAttributes.addFlashAttribute("mensaje",
-                    String.format(
-                            "✅ Pedido registrado exitosamente. ID: %d | Juegos: %d | Medida: %s | Fecha entrega: %s",
-                            pedidoGuardado.getId(), juegos, medidasSabanas, fechaEntrega));
+            model.addAttribute("mensaje",
+                    "✅ Pedido registrado exitosamente. ID: " + pedido.getId() +
+                            " | Juegos: " + juegos + " | Medida: " + medidasSabanas);
 
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "❌ Error al registrar el pedido: " + e.getMessage());
-            e.printStackTrace();
+            model.addAttribute("error", "❌ Error al registrar el pedido: " + e.getMessage());
         }
 
-        return "redirect:/pedidos";
+        return mostrarPedidos(model);
     }
 
-    // ✅ Validar producción en máquina
+    // ✅ Validar producción en máquina (trabaja por piezas)
     @PostMapping("/validar-produccion-maquina")
     @ResponseBody
     public ValidationResult validarProduccionMaquina(
@@ -152,51 +153,72 @@ public class PedidoController {
             @RequestParam int cantidadNueva) {
 
         try {
-            List<Pedido> pedidosActivos = pedidoRepository.findPedidosIncompletosPorMedida(medidasSabanas);
+            // Buscar pedidos activos para esta medida
+            List<Pedido> pedidosActivos = pedidoRepository.findByMedidasSabanasAndFechaEnvioAfter(
+                    medidasSabanas, LocalDate.now().minusDays(1));
 
             if (pedidosActivos.isEmpty()) {
-                return new ValidationResult(false, "❌ No hay pedidos activos para la medida: " + medidasSabanas);
+                return new ValidationResult(false,
+                        "❌ No hay pedidos activos para la medida: " + medidasSabanas);
             }
 
+            // Calcular total de juegos solicitados
             int totalJuegosSolicitados = pedidosActivos.stream()
                     .mapToInt(Pedido::getJuegos)
                     .sum();
 
+            // Obtener producción actual (últimos 60 días)
             LocalDate fechaInicio = LocalDate.now().minusDays(60);
-            int planasActuales = maquinaRepository.contarPorMedidaYTipoDesde(medidasSabanas, "Plana", fechaInicio);
-            int cauchosActuales = maquinaRepository.contarPorMedidaYTipoDesde(medidasSabanas, "Caucho", fechaInicio);
-            int fundasActuales = maquinaRepository.contarPorMedidaYTipoDesde(medidasSabanas, "Fundas", fechaInicio);
+            int planasActuales = maquinaRepository.contarPorMedidaYTipoDesde(
+                    medidasSabanas, "Plana", fechaInicio);
+            int cauchosActuales = maquinaRepository.contarPorMedidaYTipoDesde(
+                    medidasSabanas, "Caucho", fechaInicio);
+            int fundasActuales = maquinaRepository.contarPorMedidaYTipoDesde(
+                    medidasSabanas, "Fundas", fechaInicio);
 
+            // Calcular límites según los juegos solicitados
+            // 1 juego = 1 plana + 1 caucho + 2 fundas
             int limitePlanas = totalJuegosSolicitados;
             int limiteCauchos = totalJuegosSolicitados;
             int limiteFundas = totalJuegosSolicitados * 2;
 
+            // Calcular nueva producción
             int nuevasPlanas = planasActuales + (tipoSabana.equals("Plana") ? cantidadNueva : 0);
             int nuevosCauchos = cauchosActuales + (tipoSabana.equals("Caucho") ? cantidadNueva : 0);
             int nuevasFundas = fundasActuales + (tipoSabana.equals("Fundas") ? cantidadNueva : 0);
 
+            // Validar límites por tipo de pieza
             if (nuevasPlanas > limitePlanas) {
                 int maxPermitido = limitePlanas - planasActuales;
                 return new ValidationResult(false,
                         "🚨 Exceso de planas para " + medidasSabanas +
-                                ". Máximo permitido: " + Math.max(0, maxPermitido));
+                                ". Máximo permitido: " + Math.max(0, maxPermitido) +
+                                " (Tienes: " + planasActuales + "/" + limitePlanas + ")");
             }
 
             if (nuevosCauchos > limiteCauchos) {
                 int maxPermitido = limiteCauchos - cauchosActuales;
                 return new ValidationResult(false,
                         "🚨 Exceso de cauchos para " + medidasSabanas +
-                                ". Máximo permitido: " + Math.max(0, maxPermitido));
+                                ". Máximo permitido: " + Math.max(0, maxPermitido) +
+                                " (Tienes: " + cauchosActuales + "/" + limiteCauchos + ")");
             }
 
             if (nuevasFundas > limiteFundas) {
                 int maxPermitido = limiteFundas - fundasActuales;
                 return new ValidationResult(false,
                         "🚨 Exceso de fundas para " + medidasSabanas +
-                                ". Máximo permitido: " + Math.max(0, maxPermitido));
+                                ". Máximo permitido: " + Math.max(0, maxPermitido) +
+                                " (Tienes: " + fundasActuales + "/" + limiteFundas + ")");
             }
 
-            return new ValidationResult(true, "✅ Producción válida para " + medidasSabanas);
+            // Retornar validación exitosa con información detallada
+            return new ValidationResult(true,
+                    "✅ Producción válida para " + medidasSabanas +
+                            ". Puedes producir " + cantidadNueva + " " + tipoSabana.toLowerCase() +
+                            "(s). Estado actual: Planas(" + planasActuales + "/" + limitePlanas +
+                            "), Cauchos(" + cauchosActuales + "/" + limiteCauchos +
+                            "), Fundas(" + fundasActuales + "/" + limiteFundas + ")");
 
         } catch (Exception e) {
             return new ValidationResult(false, "❌ Error en validación: " + e.getMessage());
@@ -211,10 +233,12 @@ public class PedidoController {
             @RequestParam int cantidadNueva) {
 
         try {
-            List<Pedido> pedidosActivos = pedidoRepository.findPedidosIncompletosPorMedida(medidasSabanas);
+            List<Pedido> pedidosActivos = pedidoRepository.findByMedidasSabanasAndFechaEnvioAfter(
+                    medidasSabanas, LocalDate.now().minusDays(1));
 
             if (pedidosActivos.isEmpty()) {
-                return new ValidationResult(false, "❌ No hay pedidos activos para la medida: " + medidasSabanas);
+                return new ValidationResult(false,
+                        "❌ No hay pedidos activos para la medida: " + medidasSabanas);
             }
 
             int totalJuegosSolicitados = pedidosActivos.stream()
@@ -238,7 +262,8 @@ public class PedidoController {
         }
     }
 
-    // ✅ Validar producción en corte
+    // ✅ Validar producción en corte (trabaja por juegos completos)
+    // ✅ Validar y registrar producción en corte
     @PostMapping("/validar-produccion-corte")
     @ResponseBody
     public ValidationResult validarProduccionCorte(
@@ -250,7 +275,8 @@ public class PedidoController {
                 return new ValidationResult(false, "❌ Solo puedes registrar un juego a la vez.");
             }
 
-            List<Pedido> pedidosActivos = pedidoRepository.findPedidosIncompletosPorMedida(medidasSabanas);
+            List<Pedido> pedidosActivos = pedidoRepository.findByMedidasSabanasAndFechaEnvioAfter(
+                    medidasSabanas, LocalDate.now().minusDays(1));
 
             if (pedidosActivos.isEmpty()) {
                 return new ValidationResult(false, "❌ No hay pedidos activos para la medida: " + medidasSabanas);
@@ -266,10 +292,12 @@ public class PedidoController {
 
             if (juegosYaEntregados + juegosCompletados > totalJuegosSolicitados) {
                 int maxPermitido = totalJuegosSolicitados - juegosYaEntregados;
-                return new ValidationResult(false, "🚨 Exceso de juegos completos. Solo puedes registrar "
-                        + Math.max(0, maxPermitido) + " juego(s) más.");
+                return new ValidationResult(false,
+                        "🚨 Exceso de juegos completos. Solo puedes registrar " + Math.max(0, maxPermitido)
+                                + " juego(s) más.");
             }
 
+            // 🔥 Actualizamos directamente la entrega en la base de datos
             for (Pedido pedido : pedidosActivos) {
                 int juegosFaltantes = pedido.getJuegos() - pedido.getCantidadEntregada();
 
@@ -278,57 +306,101 @@ public class PedidoController {
 
                 pedido.setCantidadEntregada(pedido.getCantidadEntregada() + 1);
                 pedidoRepository.save(pedido);
-                break;
+                break; // Solo registramos 1 juego a la vez
             }
 
             int juegosRestantes = totalJuegosSolicitados - (juegosYaEntregados + 1);
 
             return new ValidationResult(true,
-                    "✅ Registro exitoso. Has entregado 1 juego. Quedan " + juegosRestantes + " juego(s) pendientes.");
+                    "✅ Registro exitoso. Has entregado 1 juego. " +
+                            "Quedan " + juegosRestantes + " juego(s) pendientes.");
 
         } catch (Exception e) {
             return new ValidationResult(false, "❌ Error en validación: " + e.getMessage());
         }
     }
 
-    // ✅ Actualizar cantidad entregada
+    // ✅ Actualizar cantidad entregada (usado por corte)
     @PostMapping("/actualizar-entrega")
     public String actualizarEntrega(
             @RequestParam Long pedidoId,
             @RequestParam int cantidadNueva,
-            RedirectAttributes redirectAttributes) {
+            Model model) {
 
         try {
             Optional<Pedido> pedidoOpt = pedidoRepository.findById(pedidoId);
 
             if (pedidoOpt.isEmpty()) {
-                redirectAttributes.addFlashAttribute("error", "❌ Pedido no encontrado");
-                return "redirect:/pedidos";
+                model.addAttribute("error", "❌ Pedido no encontrado");
+                return mostrarPedidos(model);
             }
 
             Pedido pedido = pedidoOpt.get();
 
+            // Validar que no exceda el total solicitado
             if (pedido.getCantidadEntregada() + cantidadNueva > pedido.getJuegos()) {
                 int maxPermitido = pedido.getJuegos() - pedido.getCantidadEntregada();
-                redirectAttributes.addFlashAttribute("error",
+                model.addAttribute("error",
                         "❌ No puedes entregar más de lo solicitado. Máximo: " + maxPermitido + " juegos");
-                return "redirect:/pedidos";
+                return mostrarPedidos(model);
             }
 
+            // Actualizar cantidad entregada
             pedido.setCantidadEntregada(pedido.getCantidadEntregada() + cantidadNueva);
             pedidoRepository.save(pedido);
 
             String estadoPedido = pedido.getCantidadEntregada() >= pedido.getJuegos() ? "COMPLETADO" : "PENDIENTE";
 
-            redirectAttributes.addFlashAttribute("mensaje",
-                    "✅ Entrega actualizada. Pedido ID: " + pedidoId + " | Entregados: " + pedido.getCantidadEntregada()
-                            + "/" + pedido.getJuegos() + " | Estado: " + estadoPedido);
+            model.addAttribute("mensaje",
+                    "✅ Entrega actualizada. Pedido ID: " + pedidoId +
+                            " | Entregados: " + pedido.getCantidadEntregada() +
+                            "/" + pedido.getJuegos() + " | Estado: " + estadoPedido);
 
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "❌ Error al actualizar entrega: " + e.getMessage());
+            model.addAttribute("error", "❌ Error al actualizar entrega: " + e.getMessage());
         }
 
-        return "redirect:/pedidos";
+        return mostrarPedidos(model);
+    }
+
+    // ✅ Obtener información de un pedido específico
+    @GetMapping("/info/{id}")
+    @ResponseBody
+    public PedidoInfo obtenerInfoPedido(@PathVariable Long id) {
+        try {
+            Optional<Pedido> pedidoOpt = pedidoRepository.findById(id);
+
+            if (pedidoOpt.isEmpty()) {
+                return new PedidoInfo(false, "Pedido no encontrado", null);
+            }
+
+            Pedido pedido = pedidoOpt.get();
+
+            // Calcular información adicional
+            int juegosRestantes = pedido.getJuegos() - pedido.getCantidadEntregada();
+            double porcentajeCompletado = (double) pedido.getCantidadEntregada() / pedido.getJuegos() * 100;
+
+            String info = String.format(
+                    "📋 Pedido ID: %d\n" +
+                            "📏 Medida: %s\n" +
+                            "📦 Juegos solicitados: %d\n" +
+                            "✅ Juegos completados: %d\n" +
+                            "⏳ Juegos restantes: %d\n" +
+                            "📊 Progreso: %.1f%%\n" +
+                            "📅 Fecha entrega: %s",
+                    pedido.getId(),
+                    pedido.getMedidasSabanas(),
+                    pedido.getJuegos(),
+                    pedido.getCantidadEntregada(),
+                    juegosRestantes,
+                    porcentajeCompletado,
+                    pedido.getFechaEnvio());
+
+            return new PedidoInfo(true, info, pedido);
+
+        } catch (Exception e) {
+            return new PedidoInfo(false, "Error: " + e.getMessage(), null);
+        }
     }
 
     // ✅ Clase para validaciones
@@ -347,6 +419,31 @@ public class PedidoController {
 
         public String getMessage() {
             return message;
+        }
+    }
+
+    // ✅ Clase para información de pedidos
+    public static class PedidoInfo {
+        private boolean success;
+        private String message;
+        private Pedido pedido;
+
+        public PedidoInfo(boolean success, String message, Pedido pedido) {
+            this.success = success;
+            this.message = message;
+            this.pedido = pedido;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public Pedido getPedido() {
+            return pedido;
         }
     }
 }

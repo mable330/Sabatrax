@@ -148,9 +148,26 @@ public class MaquinaController {
             maquina.setFecha(new Date());
             maquina.setPedido(pedidoActual); // ✔️ Aquí asignas el pedido
 
+            LocalDate fechaActividad = fechaActual;
+            List<PrecioActividad> preciosVigentes = precioActividadRepository.findVigenteByFecha("maquina", tipoSabana,
+                    fechaActividad);
+
+            if (preciosVigentes.isEmpty()) {
+                model.addAttribute("error",
+                        "🚨 No hay precio registrado para '" + tipoSabana + "' vigente el " + fechaActividad);
+                return "registroM";
+            }
+
+            int precioUnitario = preciosVigentes.get(0).getPrecio();
+            int total = precioUnitario * cantidadNueva;
+
+            maquina.setPrecioUnitario(precioUnitario);
+            maquina.setPrecioTotal(total);
+
             if (imagen != null && !imagen.isEmpty()) {
                 maquina.setImagen(imagen.getBytes());
             }
+
             repository.save(maquina);
 
             // 🔥 MENSAJE DE ÉXITO CON PROGRESO

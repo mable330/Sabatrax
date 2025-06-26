@@ -28,6 +28,7 @@
             </select>
         </div>
 
+
         <!-- Formulario de Máquina -->
         <form id="maquina-form" class="activity-form" th:action="@{/precios/guardar}" method="post" style="display: none;">
             <h3>Precios de Máquina</h3>
@@ -48,6 +49,12 @@
                 <input type="number" name="precio" placeholder="Ingrese el precio" required>
             </div>
 
+                <div class="form-group">
+        <label>📅 Vigencia desde:</label>
+        <input type="date" name="fechaInicio"
+               th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" required>
+    </div>
+
             <button class="btn" type="submit">Guardar Precio</button>
         </form>
 
@@ -58,13 +65,19 @@
 
             <div class="form-group">
                 <label>Juego de Sábanas:</label>
-                <input type="text" name="descripcion" placeholder="Ej: Juego completo, Individual" required>
+                <input type="text" name="descripcion"  value="Juego completo">
             </div>
 
             <div class="form-group">
                 <label>💰 Precio (COP):</label>
                 <input type="number" name="precio" placeholder="Ingrese el precio" required>
             </div>
+
+                <div class="form-group">
+        <label>📅 Vigencia desde:</label>
+        <input type="date" name="fechaInicio"
+               th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" required>
+    </div>
 
             <button class="btn" type="submit">Guardar Precio</button>
         </form>
@@ -87,6 +100,12 @@
                 <input type="number" name="precio" placeholder="Ingrese el precio" required>
             </div>
 
+                <div class="form-group">
+        <label>📅 Vigencia desde:</label>
+        <input type="date" name="fechaInicio"
+               th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" required>
+    </div>
+
             <button class="btn" type="submit">Guardar Precio</button>
         </form>
 
@@ -95,21 +114,20 @@
         <table>
             <thead>
                 <tr>
+                    <th>Fecha de Inicio</th>
                     <th>Actividad</th>
                     <th>Tipo/Descripción</th>
                     <th>Precio (COP)</th>
-                    <th>Acciones</th>
+                    
                 </tr>
             </thead>
             <tbody>
                 <tr th:each="precio : ${precios}">
+                    <td th:text="${#temporals.format(precio.fechaInicio, 'dd/MM/yyyy')}">Fecha de Inicio</td>
                     <td th:text="${#strings.capitalize(precio.actividad)}">Actividad</td>
                     <td th:text="${precio.descripcion}">Descripción</td>
             <td th:text="'$' + ${precio.precio} + ' COP'"></td>
-                    <td>
-                        <a th:href="@{'/precios/editar/' + ${precio.id}}" class="btn btn-warning">Editar</a>
-                        <a th:href="@{'/precios/eliminar/' + ${precio.id}}" class="btn btn-danger" onclick="return confirm('¿Seguro que desea eliminar este precio?')">Eliminar</a>
-                    </td>
+                   
                 </tr>
             </tbody>
         </table>

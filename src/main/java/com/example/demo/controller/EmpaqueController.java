@@ -139,6 +139,22 @@ public class EmpaqueController {
                 empaque.setImagen(imagenFile.getBytes());
             }
 
+            List<PrecioActividad> precios = precioActividadRepository.findByActividad("empaque");
+            String tipoEmpaque = empaque.getTipoEmpaque();
+
+            Optional<PrecioActividad> precioOpt = precios.stream()
+                    .filter(p -> p.getDescripcion().equalsIgnoreCase(tipoEmpaque))
+                    .findFirst();
+
+            int precioUnitario = precioOpt.map(PrecioActividad::getPrecio)
+                    .orElse(getPrecioDefault(tipoEmpaque));
+
+            int precioTotal = precioUnitario * cantidadNueva;
+
+            // 🔥 Guardar en entidad
+            empaque.setPrecioUnitario(precioUnitario);
+            empaque.setPrecioTotal(precioTotal);
+
             repository.save(empaque);
 
             // 🔥 CORRECCIÓN: Actualizar solo pedidos pendientes

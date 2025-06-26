@@ -4,6 +4,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDate;
 
 @Entity
 public class PrecioActividad {
@@ -17,6 +20,8 @@ public class PrecioActividad {
     private String descripcion;
 
     private Integer precio;
+
+    private LocalDate fechaInicio;
 
     // 🔧 Getters y Setters completos
 
@@ -50,5 +55,13 @@ public class PrecioActividad {
 
     public void setPrecio(Integer precio) {
         this.precio = precio;
+    }
+
+    public LocalDate getFechaInicio() {
+        return fechaInicio;
+    }
+
+    public void setFechaInicio(LocalDate fechaInicio) {
+        this.fechaInicio = fechaInicio;
     }
 }

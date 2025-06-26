@@ -11,6 +11,12 @@ public class Empaque {
     @Id
     private String id;
 
+    @Column(name = "precio_total")
+    private Integer precioTotal;
+
+    @Column(name = "precio_unitario")
+    private Integer precioUnitario;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_telefono", referencedColumnName = "telefono", nullable = false)
     private Usuario usuario;
@@ -100,6 +106,23 @@ public class Empaque {
 
     public void setNovedades(String novedades) {
         this.novedades = novedades;
+    }
+
+    public Integer getPrecioUnitario() {
+        return precioUnitario;
+    }
+
+    public void setPrecioUnitario(Integer precioUnitario) {
+        this.precioUnitario = precioUnitario;
+    }
+
+    // 🔧 Getter y Setter para precioTotal
+    public Integer getPrecioTotal() {
+        return precioTotal;
+    }
+
+    public void setPrecioTotal(Integer precioTotal) {
+        this.precioTotal = precioTotal;
     }
 
     public byte[] getImagen() {

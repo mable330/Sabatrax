@@ -53,6 +53,8 @@
                 <th>Proveedor</th>
                 <th>Novedades</th>
                 <th>Cantidad</th>
+                <th>💵 Precio Unitario</th>
+                <th>💰 Precio Total</th>
                 <th>Evidencia</th>
             </tr>
             <tr th:each="maquina : ${maquinas}">
@@ -63,6 +65,8 @@
                 <td th:text="${maquina.proveedor}"></td>
                 <td th:text="${maquina.novedades}"></td>
                 <td th:text="${maquina.cantidad}"></td>
+                <td th:text="'$' + ${maquina.precioUnitario}"></td>
+                <td th:text="'$' + ${maquina.precioTotal}"></td>
                 <td>
                     <img th:if="${maquina.imagen != null}"
                          th:src="@{'data:image/jpeg;base64,' + ${maquina.imagenBase64}}"

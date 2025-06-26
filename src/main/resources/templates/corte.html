@@ -2,142 +2,119 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    
-    <title>Mis Actividades</title>
+    <title>Mis Actividades - Corte</title>
     <link rel="stylesheet" th:href="@{/css/lista.css}">
-      <link rel="icon" th:href="@{/img/loguito.jpeg}" type="image/x-icon">
+    <link rel="icon" th:href="@{/img/loguito.jpeg}" type="image/x-icon">
 </head>
 <body>
-<div class="container">
-    <!-- Mensaje de bienvenida personalizado -->
-    <div class="welcome-section" style="text-align: center; margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
-        <h2 th:text="${mensajeBienvenida}" style="color: #2c3e50; margin: 0;">Bienvenido a Máquina</h2>
-        <p style="margin: 5px 0; color: #7f8c8d;">
-                        <strong th:text="${nombreEmpleado}">Nombre del Empleado</strong> - 
 
+<div class="container">
+    <!-- 👋 Bienvenida -->
+    <div class="welcome-section">
+        <h2 th:text="${mensajeBienvenida}">Bienvenido a Corte</h2>
+        <p>
+            <strong th:text="${nombreEmpleado}">Nombre del Empleado</strong> –
             <span th:text="${totalRegistros}">0</span> actividades registradas
         </p>
     </div>
 
-    <h3 style="text-align: center; color: #34495e;">Mis Actividades Realizadas</h3>
+    <h3 style="text-align: center;"> Mis Cortes Realizados</h3>
 
-     <div id="advertencia" style="display: none; background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center;">
+    <!-- ⚠️ Advertencia -->
+    <div id="advertencia" style="display: none;" class="alert-warning">
         <strong>⚠️ Advertencia:</strong> Por favor, selecciona al menos una actividad antes de continuar.
     </div>
-    
+
+    <!-- 📌 Botones superiores -->
     <div style="text-align: right; margin-bottom: 10px;">
-<a th:href="@{/corte/registroC}" class="btn-nuevo">Nueva Actividad</a>
+        <a th:href="@{/corte/registroC}" class="btn-nuevo"> Nueva Actividad</a>
     </div>
-    
- 
-  
-    
-    <form method="POST" th:action="@{/corte/calcular}"  id="actividadesForm">
-         <div class="button-group">
-            <input type="submit" class="m" value="Calcular" onclick="return validarSeleccion('calcular')">
-            <input type="submit" class="m" value="Eliminar" formaction="/corte/eliminar"
-                onclick="return confirm('¿Estás seguro de que deseas eliminar estas filas?');">
-                 <input type="button" class="m" value="Seleccionar Todo" onclick="seleccionarTodo()">
-            <input type="button" class="m" value="Cerrar Sesión" onclick="window.location.href='/login'">
+
+    <!-- 📋 Formulario de acciones -->
+    <form method="POST" th:action="@{/corte/calcular}" id="actividadesForm">
+        <div class="button-group">
+            <input type="submit" class="m" value=" Calcular" onclick="return validarSeleccion('calcular')">
+            <input type="submit" class="m" value=" Eliminar" formaction="/corte/eliminar"
+                   onclick="return confirm('¿Estás seguro de que deseas eliminar estas filas?');">
+            <input type="button" class="m" value=" Seleccionar Todo" onclick="seleccionarTodo()">
+            <input type="button" class="m" value=" Cerrar Sesión" onclick="window.location.href='/login'">
         </div>
 
+        <!-- 🧾 Tabla -->
         <table>
-            <tr>
-                <th></th>
-                <th>Fecha</th>
-                <th>Medidas</th>
-                <th>juegos</th>
-                <th>Proveedor</th>
-                <th>Novedades</th>
-                <th>Evidencia</th>
-            </tr>
-            <tr th:each="registro : ${corte}">
-    <td><input type="checkbox" name="selectedRows" th:value="${registro.id}"></td>
-    <td th:text="${#temporals.format(registro.fecha, 'dd/MM/yyyy')}"></td>
-    <td th:text="${registro.medidas}"></td>
-    <td th:text="${registro.juegos}"></td>
-    <td th:text="${registro.proveedor}"></td>
-    <td th:text="${registro.novedades}"></td>
-    <td>
-        <img th:if="${registro.imagen != null}"
-             th:src="@{'data:image/jpeg;base64,' + ${registro.imagenBase64}}"
-             width="100" height="100"
-             alt="Evidencia">
-    </td>
-</tr>
-
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Fecha</th>
+                    <th> Medidas</th>
+                    <th> Juegos</th>
+                    <th> Precio Unitario</th>
+                    <th> Total</th>
+                    <th> Proveedor</th>
+                    <th> Novedades</th>
+                    <th> Evidencia</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="registro : ${corte}">
+                    <td><input type="checkbox" name="selectedRows" th:value="${registro.id}" onclick="ocultarAdvertencia()"></td>
+                    <td th:text="${#temporals.format(registro.fecha, 'dd/MM/yyyy')}"></td>
+                    <td th:text="${registro.medidas}"></td>
+                    <td th:text="${registro.juegos}"></td>
+                    <td th:text="'$' + ${registro.precioUnitario}"></td>
+                    <td th:text="'$' + ${registro.precioTotal}"></td>
+                    <td th:text="${registro.proveedor}"></td>
+                    <td th:text="${registro.novedades}"></td>
+                    <td>
+                        <img th:if="${registro.imagen != null}"
+                             th:src="@{'/corte/imagen/' + ${registro.id}}"
+                             alt="Evidencia" width="100" height="100"/>
+                    </td>
+                </tr>
+            </tbody>
         </table>
-        
-       
     </form>
-    
-     <div th:if="${total != null}" class="resultado">
-        <p>Su Salario es de: $<span th:text="${#numbers.formatDecimal(total, 0, 'POINT', 0, 'COMMA')}"></span></p>
-<form action="/pdfCorte/generar" method="post">
-    <input type="hidden" th:each="id : ${idsSeleccionados}" name="selectedRows" th:value="${id}">
-    <input type="hidden" name="total" th:value="${total}">
-    <input type="submit" value="Generar PDF" class="btn-pdf">
-</form>
 
+    <!-- 💸 Resultado del cálculo -->
+    <div th:if="${total != null}" class="resultado">
+        <p>💵 Su salario es: $<span th:text="${#numbers.formatDecimal(total, 0, 'POINT', 0, 'COMMA')}"></span></p>
 
+        <form action="/pdfCorte/generar" method="post">
+            <input type="hidden" th:each="id : ${idsSeleccionados}" name="selectedRows" th:value="${id}">
+            <input type="hidden" name="total" th:value="${total}">
+            <input type="submit" value="🧾 Generar PDF" class="btn-pdf">
+        </form>
     </div>
 </div>
+
+<!-- ✅ JS -->
 <script>
-function validarSeleccion(accion) {
-    // Obtener todos los checkboxes marcados
+function validarSeleccion() {
     const checkboxes = document.querySelectorAll('input[name="selectedRows"]:checked');
     const advertencia = document.getElementById('advertencia');
-    
+
     if (checkboxes.length === 0) {
-        // Mostrar advertencia
         advertencia.style.display = 'block';
-        
-        // Hacer scroll hacia la advertencia para que sea visible
         advertencia.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // Opcional: hacer que la advertencia se desvanezca después de unos segundos
-        setTimeout(function() {
-            if (advertencia.style.display === 'block') {
-                advertencia.style.opacity = '0.7';
-            }
-        }, 3000);
-        
-        return false; // Prevenir el envío del formulario
+        return false;
     }
-    
-    // Si hay selección, ocultar advertencia y continuar
+
     advertencia.style.display = 'none';
     return true;
 }
 
 function ocultarAdvertencia() {
-    // Ocultar la advertencia cuando el usuario selecciona un checkbox
     const advertencia = document.getElementById('advertencia');
     if (advertencia.style.display === 'block') {
         advertencia.style.display = 'none';
-        advertencia.style.opacity = '1'; // Restaurar opacidad
     }
 }
 
 function seleccionarTodo() {
-    const checkboxes = document.querySelectorAll('input[name="selectedRows"]');
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = true;
-    });
+    document.querySelectorAll('input[name="selectedRows"]').forEach(cb => cb.checked = true);
     ocultarAdvertencia();
 }
-
-function deseleccionarTodo() {
-    const checkboxes = document.querySelectorAll('input[name="selectedRows"]');
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = false;
-    });
-}
-
-// Función adicional para mejorar la experiencia del usuario
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Página cargada correctamente');
-});
 </script>
+
 </body>
 </html>

@@ -44,6 +44,8 @@
                 <th>Medidas</th>
                 <th>Tipo Empaque</th>
                 <th>Juegos</th>
+                <th>💵 Precio Unitario</th>
+                <th>💰 Precio Total</th>
                 <th>Proveedor</th>
                 <th>Novedades</th>
                 <th>Evidencia</th>
@@ -54,6 +56,8 @@
                 <td th:text="${registro.medidas}"></td>
                 <td th:text="${registro.tipoEmpaque}"></td>
                 <td th:text="${registro.juegos}"></td>
+                <td th:text="'$' + ${registro.precioUnitario}"></td>
+                    <td th:text="'$' + ${registro.precioTotal}"></td>
                 <td th:text="${registro.proveedor}"></td>
                 <td th:text="${registro.novedades}"></td>
                 <td>

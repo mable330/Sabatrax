@@ -4,6 +4,7 @@ import com.example.demo.model.PrecioActividad;
 import com.example.demo.repository.PrecioActividadRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -16,6 +17,7 @@ import java.util.Optional;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.time.LocalDate;
 
 @Controller
 @RequestMapping("/precios")
@@ -57,9 +59,11 @@ public class PrecioActividadController {
 
     // 🔥 MEJORADO: Guardar precio con validaciones avanzadas y normalización
     @PostMapping("/guardar")
-    public String guardarPrecio(@RequestParam String actividad,
+    public String guardarPrecio(
+            @RequestParam String actividad,
             @RequestParam String descripcion,
             @RequestParam Integer precio,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fechaInicio,
             RedirectAttributes redirectAttributes) {
 
         try {
@@ -84,59 +88,50 @@ public class PrecioActividadController {
                 return "redirect:/precios";
             }
 
-            // ✅ NORMALIZACIÓN AVANZADA
-            String actividadNormalizada = normalizarActividad(actividad);
-            String descripcionNormalizada = normalizarDescripcion(descripcion);
-
-            // Validar que la actividad sea válida
-            if (!esActividadValida(actividadNormalizada)) {
-                redirectAttributes.addFlashAttribute("error",
-                        "🚨 Actividad no válida. Use: maquina, corte o empaque");
+            if (fechaInicio == null) {
+                redirectAttributes.addFlashAttribute("error", "🚨 Debes especificar una fecha de vigencia");
                 return "redirect:/precios";
             }
 
-            // ✅ VERIFICAR DUPLICADOS Y ACTUALIZAR O CREAR
-            Optional<PrecioActividad> precioExistente = precioActividadRepository
-                    .findByActividadAndDescripcion(actividadNormalizada, descripcionNormalizada);
+            // ✅ NORMALIZACIÓN
+            String actividadNormalizada = normalizarActividad(actividad);
+            String descripcionNormalizada = normalizarDescripcion(descripcion);
 
-            if (precioExistente.isPresent()) {
-                // 🔥 ACTUALIZAR PRECIO EXISTENTE
-                PrecioActividad precioActualizar = precioExistente.get();
-                Integer precioAnterior = precioActualizar.getPrecio();
-                precioActualizar.setPrecio(precio);
-                precioActividadRepository.save(precioActualizar);
-
-                // Calcular diferencia porcentual
-                double diferenciaPorcentual = ((double) (precio - precioAnterior) / precioAnterior) * 100;
-                String tendencia = diferenciaPorcentual > 0 ? "📈 +" : "📉 ";
-
-                redirectAttributes.addFlashAttribute("exito",
-                        "✅ Precio actualizado: " + descripcionNormalizada +
-                                " en " + actividadNormalizada +
-                                " cambió de $" + precioAnterior + " a $" + precio +
-                                " (" + tendencia + String.format("%.1f", Math.abs(diferenciaPorcentual)) + "%)");
-            } else {
-                // 🔥 CREAR NUEVO PRECIO
-                PrecioActividad nuevoPrecio = new PrecioActividad();
-                nuevoPrecio.setActividad(actividadNormalizada);
-                nuevoPrecio.setDescripcion(descripcionNormalizada);
-                nuevoPrecio.setPrecio(precio);
-                precioActividadRepository.save(nuevoPrecio);
-
-                redirectAttributes.addFlashAttribute("exito",
-                        "✅ Nuevo precio registrado: " + descripcionNormalizada +
-                                " en " + actividadNormalizada + " = $" + precio);
+            if (!esActividadValida(actividadNormalizada)) {
+                redirectAttributes.addFlashAttribute("error", "🚨 Actividad no válida: maquina, corte o empaque");
+                return "redirect:/precios";
             }
 
-            // 🔥 LOGGING para auditoria (opcional)
-            logCambioPrecio(actividadNormalizada, descripcionNormalizada, precio,
-                    precioExistente.isPresent() ? "ACTUALIZADO" : "CREADO");
+            // ✅ REVISAR DUPLICADOS EXACTOS (MISMA FECHA)
+            Optional<PrecioActividad> existente = precioActividadRepository
+                    .findByActividadAndDescripcionAndFechaInicio(
+                            actividadNormalizada,
+                            descripcionNormalizada,
+                            fechaInicio);
 
-        } catch (NumberFormatException e) {
-            redirectAttributes.addFlashAttribute("error", "🚨 El precio debe ser un número válido");
+            if (existente.isPresent()) {
+                redirectAttributes.addFlashAttribute("error",
+                        "🚨 Ya existe un precio para esa actividad y descripción con esa fecha de inicio.");
+                return "redirect:/precios";
+            }
+
+            // ✅ CREAR NUEVA ENTRADA
+            PrecioActividad nuevoPrecio = new PrecioActividad();
+            nuevoPrecio.setActividad(actividadNormalizada);
+            nuevoPrecio.setDescripcion(descripcionNormalizada);
+            nuevoPrecio.setPrecio(precio);
+            nuevoPrecio.setFechaInicio(fechaInicio);
+
+            precioActividadRepository.save(nuevoPrecio);
+
+            redirectAttributes.addFlashAttribute("exito",
+                    "✅ Nuevo precio registrado para " + descripcionNormalizada +
+                            " en " + actividadNormalizada + " desde " + fechaInicio + ": $" + precio);
+
+            logCambioPrecio(actividadNormalizada, descripcionNormalizada, precio, "CREADO");
+
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error",
-                    "🚨 Error al guardar el precio: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "🚨 Error al guardar el precio: " + e.getMessage());
         }
 
         return "redirect:/precios";

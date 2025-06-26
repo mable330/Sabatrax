@@ -11,6 +11,12 @@ public class Maquina {
     @Id
     private String id;
 
+    @Column(name = "precio_unitario")
+    private Integer precioUnitario;
+
+    // 💵 Precio total (precioUnitario * cantidad)
+    @Column(name = "precio_total")
+    private Integer precioTotal;
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_telefono", referencedColumnName = "telefono", nullable = false)
     private Usuario usuario;
@@ -122,6 +128,23 @@ public class Maquina {
 
     public void setCantidad(Integer cantidad) {
         this.cantidad = cantidad;
+    }
+
+    public Integer getPrecioUnitario() {
+        return precioUnitario;
+    }
+
+    public void setPrecioUnitario(Integer precioUnitario) {
+        this.precioUnitario = precioUnitario;
+    }
+
+    // 🔧 Getter y Setter para precioTotal
+    public Integer getPrecioTotal() {
+        return precioTotal;
+    }
+
+    public void setPrecioTotal(Integer precioTotal) {
+        this.precioTotal = precioTotal;
     }
 
     public byte[] getImagen() {

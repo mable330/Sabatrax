@@ -82,11 +82,10 @@ public class CorteController {
 
         try {
             String medidas = corte.getMedidas();
-            int juegosNuevos = Integer.parseInt(corte.getJuegos());
+            int juegos = Integer.parseInt(corte.getJuegos());
             LocalDate fechaActual = LocalDate.now();
 
             // 🔥 Buscar el pedido más reciente para la medida
-
             Pedido pedidoActual = pedidoRepository.findByMedidasSabanas(medidas)
                     .stream()
                     .findFirst()
@@ -97,14 +96,11 @@ public class CorteController {
                 return "registroC";
             }
 
-            // 🔥 Contar juegos cortados desde la fecha de creación del pedido actual
+            // 🔥 Contar juegos ya cortados
             int juegosYaCortados = repository.contarJuegosCortadosPorPedido(pedidoActual.getId());
-
-            // 🔥 Límite basado en el pedido actual
             int limiteJuegosCorte = pedidoActual.getJuegos();
 
-            // Validar que no exceda el límite
-            if (juegosYaCortados + juegosNuevos > limiteJuegosCorte) {
+            if (juegosYaCortados + juegos > limiteJuegosCorte) {
                 int maxPermitido = Math.max(0, limiteJuegosCorte - juegosYaCortados);
                 model.addAttribute("error",
                         "🚨 Exceso de juegos cortados para " + medidas +
@@ -113,24 +109,43 @@ public class CorteController {
                 return "registroC";
             }
 
-            // 🔥 Guardar la actividad
+            // ✅ PRECIO dinámico basado en actividad y descripción "Juego completo"
+            String descripcion = "Juego completo";
+            List<PrecioActividad> preciosVigentes = precioActividadRepository.findVigenteByFecha(
+                    "corte", descripcion, fechaActual);
+
+            if (preciosVigentes.isEmpty()) {
+                model.addAttribute("error", "🚨 No hay precio registrado para 'corte' y tipo '" + descripcion
+                        + "' vigente en " + fechaActual);
+                return "registroC";
+            }
+
+            int precioUnitario = preciosVigentes.get(0).getPrecio();
+            int precioTotal = precioUnitario * juegos;
+
+            // 🔥 Guardar actividad
             corte.setUsuario(usuario);
             corte.setId(UUID.randomUUID().toString());
-            corte.setFecha(LocalDate.now());
+            corte.setFecha(fechaActual);
             corte.setPedido(pedidoActual);
+            corte.setDescripcion(descripcion);
+            corte.setPrecioUnitario(precioUnitario);
+            corte.setPrecioTotal(precioTotal);
+
             if (imagen != null && !imagen.isEmpty()) {
                 corte.setImagen(imagen.getBytes());
             }
+
             repository.save(corte);
 
             // 🔥 Mensaje de éxito con progreso
-            int nuevosJuegosCortados = juegosYaCortados + juegosNuevos;
+            int nuevosJuegosCortados = juegosYaCortados + juegos;
             double porcentajeCompletado = (nuevosJuegosCortados * 100.0) / limiteJuegosCorte;
 
             model.addAttribute("mensaje",
-                    "✅ Registro exitoso: " + juegosNuevos + " juego(s) cortado(s) para " + medidas +
-                            "\n📊 Progreso en corte: " + nuevosJuegosCortados + "/" + limiteJuegosCorte
-                            + " juegos (" + String.format("%.1f", porcentajeCompletado) + "%)" +
+                    "✅ Registro exitoso: " + juegos + " juego(s) cortado(s) para " + medidas +
+                            "\n📊 Progreso en corte: " + nuevosJuegosCortados + "/" + limiteJuegosCorte +
+                            " juegos (" + String.format("%.1f", porcentajeCompletado) + "%)" +
                             "\n📋 Estado: "
                             + (nuevosJuegosCortados >= limiteJuegosCorte ? "COMPLETO ✅" : "EN PROCESO ⏳"));
 

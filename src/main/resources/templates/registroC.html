@@ -40,7 +40,9 @@
         <option value="King">King</option>
       </select>
     </li>
-
+<li>
+      <input type="hidden" th:field="*{descripcion}" value="Juego completo"/>
+    </li>
     <li>
       <label>Cantidad de Juegos de Sábanas:</label>
       <input type="number" th:field="*{juegos}" required min="1"/>

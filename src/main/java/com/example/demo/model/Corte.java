@@ -12,6 +12,16 @@ public class Corte {
     @Id
     private String id;
 
+    @Column(name = "descripcion")
+    private String descripcion;
+
+    @Column(name = "precio_unitario")
+    private Integer precioUnitario;
+
+    // 💵 Precio total (precioUnitario * cantidad)
+    @Column(name = "precio_total")
+    private Integer precioTotal;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_telefono", referencedColumnName = "telefono", nullable = false)
     private Usuario usuario;
@@ -102,6 +112,31 @@ public class Corte {
 
     public void setPedido(Pedido pedido) {
         this.pedido = pedido;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public Integer getPrecioUnitario() {
+        return precioUnitario;
+    }
+
+    public void setPrecioUnitario(Integer precioUnitario) {
+        this.precioUnitario = precioUnitario;
+    }
+
+    // 🔧 Getter y Setter para precioTotal
+    public Integer getPrecioTotal() {
+        return precioTotal;
+    }
+
+    public void setPrecioTotal(Integer precioTotal) {
+        this.precioTotal = precioTotal;
     }
 
     public byte[] getImagen() {

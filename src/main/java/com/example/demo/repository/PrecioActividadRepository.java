@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDate;
 
 public interface PrecioActividadRepository extends JpaRepository<PrecioActividad, Long> {
 
@@ -38,4 +39,14 @@ public interface PrecioActividadRepository extends JpaRepository<PrecioActividad
     // 🔥 NUEVO: Verificar si existe un precio para una combinación
     // actividad-descripción
     boolean existsByActividadAndDescripcion(String actividad, String descripcion);
+
+    Optional<PrecioActividad> findByActividadAndDescripcionAndFechaInicio(String actividad, String descripcion,
+            LocalDate fechaInicio);
+
+    @Query("SELECT p FROM PrecioActividad p WHERE p.actividad = :actividad AND p.descripcion = :descripcion AND p.fechaInicio <= :fecha ORDER BY p.fechaInicio DESC")
+    List<PrecioActividad> findVigenteByFecha(
+            @Param("actividad") String actividad,
+            @Param("descripcion") String descripcion,
+            @Param("fecha") LocalDate fecha);
+
 }

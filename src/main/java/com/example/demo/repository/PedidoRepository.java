@@ -10,8 +10,11 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Date;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
+
+        List<Pedido> findByMedidasSabanasAndFechaEnvioAfter(String medidasSabanas, Date fechaEnvio);
 
         /**
          * Busca un pedido por medidas de sábanas y fecha de envío exacta
